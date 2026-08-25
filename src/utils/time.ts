@@ -26,5 +26,5 @@ export function getTimezoneUtcOffset(timezone: string): number | null {
 export function convertOffsetToGlobeEmoji(offset: number): "🌎" | "🌍" | "🌏" {
   if (offset < -1) return "🌎";
   else if (offset >= 1 && offset <= 3) return "🌍";
-  else return "🌏";
+  return "🌏";
 }

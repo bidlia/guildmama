@@ -7,6 +7,8 @@ import {
   Events,
   GatewayIntentBits,
   Interaction,
+  InteractionReplyOptions,
+  MessageFlags,
 } from "discord.js";
 import { discoverCommands } from "./utils/discover-commands";
 import { VERSION } from "./utils/constants";
@@ -41,8 +43,33 @@ client.once(Events.ClientReady, (client: Client<true>) => {
 });
 
 client.on(Events.InteractionCreate, async (interaction: Interaction) => {
-  if (interaction.isChatInputCommand()) await handleChatInput(interaction);
-  else if (interaction.isAutocomplete()) await handleAutocomplete(interaction);
+  if (interaction.isChatInputCommand()) {
+    try {
+      await handleChatInput(interaction);
+    } catch (err) {
+      console.error(
+        `[Err]: There was an error while executing the command '${interaction.commandName}'; ${err}`,
+      );
+
+      const apologyMessage: InteractionReplyOptions = {
+        content: "There was an error while executing this command!",
+        flags: MessageFlags.Ephemeral,
+      };
+
+      if (interaction.replied || interaction.deferred)
+        await interaction.followUp(apologyMessage);
+      else await interaction.reply(apologyMessage);
+    }
+  } else if (interaction.isAutocomplete()) {
+    try {
+      await handleAutocomplete(interaction);
+    } catch (err) {
+      console.error(
+        `[Err]: Autocomplete failed for the command '${interaction.commandName}'`,
+        err,
+      );
+    }
+  }
 });
 
 client.login(process.env.CLIENT_TOKEN);

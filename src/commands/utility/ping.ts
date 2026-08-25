@@ -24,27 +24,23 @@ const command: Command = {
       embeds: [
         new EmbedBuilder()
           .setColor(pingToColour(roundtripLatency))
-          .setTitle("Pong!")
-          .addFields(
-            {
-              name: "Roundtrip Latency",
-              value: `\`${roundtripLatency}ms\``,
-              inline: true,
-            },
-            {
-              name: "Websocket Latency",
-              value: `\`${websocketLatency}ms\``,
-              inline: true,
-            },
-          ),
+          .setAuthor({ name: "Pong!" })
+          .setTitle(
+            `Our connection is${pingToHealthMessage(roundtripLatency + websocketLatency)}`,
+          )
+          .setFooter({
+            text: `Roundtrip: ${roundtripLatency} ms  •  Websocket: ${websocketLatency} ms`,
+          }),
       ],
     });
   },
 };
 
+export default command;
+
 function pingToColour(ping: number): number {
   const PING_MIN = 200;
-  const PING_MAX = 750;
+  const PING_MAX = 600;
   const pingClamped = Math.max(PING_MIN, Math.min(ping, PING_MAX));
   const pingPercentage = pingClamped / PING_MAX;
   const r = Math.round(0 + (255 - 0) * pingPercentage);
@@ -52,4 +48,13 @@ function pingToColour(ping: number): number {
   return (r << 16) + (200 << 8) + b;
 }
 
-export default command;
+function pingToHealthMessage(
+  ping: number,
+):
+  | " great!"
+  | " alright."
+  | "n't great.\nSorry, I'm driving through a tunnel. 😔" {
+  if (ping <= 250) return " great!";
+  else if (ping > 250 && ping <= 600) return " alright.";
+  return "n't great.\nSorry, I'm driving through a tunnel. 😔";
+}
