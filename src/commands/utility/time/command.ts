@@ -3,6 +3,7 @@ import {
   ChatInputCommandInteraction,
   MessageFlags,
   SlashCommandBuilder,
+  User,
 } from "discord.js";
 import { Command } from "../../../types/command";
 import { db } from "../../../database";
@@ -10,6 +11,8 @@ import { DEVELOPER_ID, GUILD_ID } from "../../../utils/constants";
 import { buildGlobalTimecard, buildSingleTimecard } from "./formats";
 import { provideAutocompleteChoices } from "../../../utils/autocomplete";
 import { getProfile, upsertProfile } from "../../../utils/database";
+
+const resetUserTimezoneKeyword = "none";
 
 const command: Command = {
   data: new SlashCommandBuilder()
@@ -26,7 +29,9 @@ const command: Command = {
     .addStringOption((option) =>
       option
         .setName("set")
-        .setDescription("Set your personal IANA timezone")
+        .setDescription(
+          `Set your personal IANA timezone. Entering "${resetUserTimezoneKeyword}" will delete your timecard`,
+        )
         .setRequired(false)
         .setAutocomplete(true),
     ),
@@ -41,23 +46,13 @@ const command: Command = {
           flags: MessageFlags.Ephemeral,
         });
       } else {
-        try {
-          Intl.DateTimeFormat(undefined, { timeZone: setOption });
-        } catch {
-          return interaction.reply({
-            content: `The provided option, **${setOption}**, is not a valid IANA timezone. Please choose an option directly from the drop-down menu.`,
-            flags: MessageFlags.Ephemeral,
-          });
-        }
-
-        await upsertProfile(getOption.id, {
-          timezone: setOption,
-        });
-
-        return interaction.reply({
-          content: `**${getOption.displayName}**'s timezone was updated to \`${setOption}\`.`,
-          flags: MessageFlags.Ephemeral,
-        });
+        return await updateTimezone(
+          interaction,
+          getOption,
+          setOption,
+          resetUserTimezoneKeyword,
+          false,
+        );
       }
     }
 
@@ -76,23 +71,13 @@ const command: Command = {
     }
 
     if (setOption) {
-      try {
-        Intl.DateTimeFormat(undefined, { timeZone: setOption });
-      } catch {
-        return interaction.reply({
-          content: `The provided option, **${setOption}**, is not a valid IANA timezone. Please choose an option directly from the drop-down menu.`,
-          flags: MessageFlags.Ephemeral,
-        });
-      }
-
-      await upsertProfile(interaction.user.id, {
-        timezone: setOption,
-      });
-
-      return interaction.reply({
-        content: `Your timezone was updated to \`${setOption}\`.`,
-        flags: MessageFlags.Ephemeral,
-      });
+      return await updateTimezone(
+        interaction,
+        interaction.user,
+        setOption,
+        resetUserTimezoneKeyword,
+        true,
+      );
     }
     const allProfiles = await db.profile.findMany({
       where: {
@@ -104,7 +89,7 @@ const command: Command = {
     if (allProfiles.length == 0) {
       return interaction.reply({
         content:
-          "No one has set a timezone yet! Set yours with `/time set:<IANA timezone>`!",
+          "No one has a timecard yet! Set yours with `/time set:<IANA timezone>`!",
         flags: MessageFlags.Ephemeral,
       });
     }
@@ -117,10 +102,45 @@ const command: Command = {
   async autocomplete(interaction: AutocompleteInteraction) {
     provideAutocompleteChoices(
       interaction,
-      Intl.supportedValuesOf("timeZone"),
+      [...Intl.supportedValuesOf("timeZone"), resetUserTimezoneKeyword],
       false,
     );
   },
 };
 
 export default command;
+
+function verifyTimezoneIntegrity(
+  interaction: ChatInputCommandInteraction,
+  timezone: string,
+  resetKeyword: string,
+) {
+  try {
+    if (timezone != resetKeyword)
+      Intl.DateTimeFormat(undefined, { timeZone: timezone });
+  } catch {
+    return interaction.reply({
+      content: `The provided option, **${timezone}**, is not a valid IANA timezone.\nPlease choose an option directly from the drop-down menu.\n(Tip: Use \`/time set:${resetUserTimezoneKeyword}\` to reset your timecard.)`,
+      flags: MessageFlags.Ephemeral,
+    });
+  }
+}
+
+async function updateTimezone(
+  interaction: ChatInputCommandInteraction,
+  user: User,
+  timezone: string,
+  resetKeyword: string,
+  settingSelf: boolean,
+) {
+  verifyTimezoneIntegrity(interaction, timezone, resetKeyword);
+
+  await upsertProfile(user.id, {
+    timezone: timezone,
+  });
+
+  return interaction.reply({
+    content: `${settingSelf ? "Your" : `**${user.displayName}**'s`} timecard has been ${timezone == resetKeyword ? "removed" : `updated to \`${timezone}\``}.`,
+    flags: MessageFlags.Ephemeral,
+  });
+}
