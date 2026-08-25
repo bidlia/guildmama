@@ -6,9 +6,10 @@ import {
 } from "discord.js";
 import { Command } from "../../../types/command";
 import { db } from "../../../database";
-import { GUILD_ID } from "../../../utils/constants";
+import { DEVELOPER_ID, GUILD_ID } from "../../../utils/constants";
 import { buildGlobalTimecard, buildSingleTimecard } from "./formats";
 import { provideAutocompleteChoices } from "../../../utils/autocomplete";
+import { getProfile, upsertProfile } from "../../../utils/database";
 
 const command: Command = {
   data: new SlashCommandBuilder()
@@ -33,25 +34,43 @@ const command: Command = {
     const getOption = interaction.options.getUser("get");
     const setOption = interaction.options.getString("set");
 
-    if (setOption && getOption)
-      return interaction.reply({
-        content: "Please submit one sub-command at a time!",
-        flags: MessageFlags.Ephemeral,
-      });
+    if (setOption && getOption) {
+      if (DEVELOPER_ID !== interaction.user.id) {
+        return interaction.reply({
+          content: "Please submit one sub-command at a time!",
+          flags: MessageFlags.Ephemeral,
+        });
+      } else {
+        try {
+          Intl.DateTimeFormat(undefined, { timeZone: setOption });
+        } catch {
+          return interaction.reply({
+            content: `The provided option, **${setOption}**, is not a valid IANA timezone. Please choose an option directly from the drop-down menu.`,
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+
+        await upsertProfile(getOption.id, {
+          timezone: setOption,
+        });
+
+        return interaction.reply({
+          content: `**${getOption.displayName}**'s timezone was updated to \`${setOption}\`.`,
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+    }
 
     if (getOption) {
-      const targetProfile = await db.profile.findUnique({
-        where: { id: getOption.id },
-      });
-
-      if (!targetProfile || !targetProfile.timezone)
+      const profile = await getProfile(getOption.id);
+      if (!profile || !profile.timezone)
         return interaction.reply({
           content: `${getOption.displayName} has not configured their timezone.`,
           flags: MessageFlags.Ephemeral,
         });
 
       return interaction.reply({
-        embeds: [await buildSingleTimecard(getOption, targetProfile)],
+        embeds: [await buildSingleTimecard(getOption, profile)],
         flags: MessageFlags.Ephemeral,
       });
     }
@@ -66,18 +85,12 @@ const command: Command = {
         });
       }
 
-      await db.profile.upsert({
-        where: { id: interaction.user.id },
-        update: { timezone: setOption },
-        create: {
-          id: interaction.user.id,
-          guildId: GUILD_ID,
-          timezone: setOption,
-        },
+      await upsertProfile(interaction.user.id, {
+        timezone: setOption,
       });
 
       return interaction.reply({
-        content: `Your timezone was updated to ${setOption}`,
+        content: `Your timezone was updated to \`${setOption}\`.`,
         flags: MessageFlags.Ephemeral,
       });
     }
