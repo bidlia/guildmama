@@ -2,7 +2,10 @@ import { EmbedBuilder, Interaction, User } from "discord.js";
 import { RELEASE } from "../../../utils/constants";
 import { Profile } from "@prisma/client";
 import { Record } from "@prisma/client/runtime/library";
-import { db } from "../../../database";
+import {
+  convertOffsetToGlobeEmoji,
+  getTimezoneUtcOffset,
+} from "../../../utils/time";
 
 export function buildGlobalTimecard(
   interaction: Interaction,
@@ -10,23 +13,21 @@ export function buildGlobalTimecard(
 ): EmbedBuilder {
   const userProfile = profiles.find((prf) => prf.id == interaction.user.id);
   const userLocalTime = userProfile
-    ? userProfile.timezone
+    ? `currently set to: ${userProfile.timezone}`
     : "not tracked.  •  Configure your timezone with '/time set:<IANA timezone>'";
 
   const groups: Record<string, string[]> = {};
-  profiles.forEach((prf) => {
-    const localeString = getLocaleString(prf.timezone);
-
-    if (!groups[localeString]) groups[localeString] = [];
-    groups[localeString].push(`<@${prf.id}>`);
+  getProfileTimes(profiles).forEach((prf) => {
+    if (!groups[prf.time]) groups[prf.time] = [];
+    groups[prf.time].push(`<@${prf.user.id}>`);
   });
 
-  const timefields = Object.entries(groups).map(([localeString, members]) => {
-    return { name: localeString, value: members.join("\n"), inline: true };
+  const timefields = Object.entries(groups).map(([timeString, members]) => {
+    return { name: timeString, value: members.join("\n"), inline: true };
   });
 
   const embed = new EmbedBuilder()
-    .setTitle("Server Global Timecard")
+    .setTitle("Global Timecard  🗺️")
     .setColor(RELEASE.TINT)
     .addFields(timefields)
     .setFooter({ text: `Your timezone is ${userLocalTime}` });
@@ -39,20 +40,36 @@ export async function buildSingleTimecard(
   userProfile: Profile,
 ): Promise<EmbedBuilder> {
   return new EmbedBuilder()
-    .setAuthor({ name: `${user.displayName}'s local time` })
-    .setTitle(getLocaleString(userProfile.timezone))
+    .setAuthor({ name: `${user.displayName}'s local time  ⏰` })
+    .setTitle(getProfileTimes([userProfile])[0].time)
     .setColor(RELEASE.TINT);
 }
 
-function getLocaleString(timezone: string): string {
-  try {
-    return new Intl.DateTimeFormat("en-US", {
-      timeZone: timezone,
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    }).format(new Date());
-  } catch {
-    return "Invalid Timezone";
+function getProfileTimes(
+  profiles: Profile[],
+): { time: string; user: Profile }[] {
+  const rawLocale: { offset: number; string: string; user: Profile }[] = [];
+
+  for (const profile of profiles) {
+    const utcOffset = getTimezoneUtcOffset(profile.timezone);
+
+    if (utcOffset === null) continue;
+    rawLocale.push({
+      offset: utcOffset,
+      string: new Intl.DateTimeFormat("en-US", {
+        timeZone: profile.timezone,
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      }).format(new Date()),
+      user: profile,
+    });
   }
+
+  return rawLocale
+    .sort((a, b) => b.offset - a.offset)
+    .map((loc) => ({
+      time: `${convertOffsetToGlobeEmoji(loc.offset)}  ${loc.string}`,
+      user: loc.user,
+    }));
 }
