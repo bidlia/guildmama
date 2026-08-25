@@ -1,0 +1,29 @@
+{
+  "name": "guildmama",
+  "version": "0.0.0",
+  "description": "General purpose discord utility bot for a group of MH friends.",
+  "homepage": "https://github.com/bidlia/guildmama#readme",
+  "bugs": {
+    "url": "https://github.com/bidlia/guildmama/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bidlia/guildmama.git"
+  },
+  "author": "Logan IAB",
+  "type": "commonjs",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "echo 'Building...' && rm -rf dist && tsc --sourceMap false && echo 'Built.'",
+    "start": "echo 'Starting...' && node --env-file=.env .",
+    "deploy": "node --env-file=.env dist/deploy-commands.js"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "prisma": "^6.19.3"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "discord.js": "^14.27.0"
+  }
+}
