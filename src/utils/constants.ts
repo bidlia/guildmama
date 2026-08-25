@@ -11,13 +11,13 @@ const commitHash = (() => {
   try {
     return execSync("git rev-parse --short HEAD").toString().trim();
   } catch {
-    return "unknown";
+    process.kill(1);
   }
 })();
 
 export const RELEASE = {
   HASH: commitHash,
-  TINT: generateReleaseTint(commitHash),
+  TINT: commitHash ? generateReleaseTint(commitHash) : 10092441,
 } as const;
 
 function deriveEnvConstants(constant: string): string {
