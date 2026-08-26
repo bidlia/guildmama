@@ -34,7 +34,7 @@ const command: Command = {
       option
         .setName("set")
         .setDescription(
-          `Set your personal IANA timezone. Entering "${resetUserTimezoneKeyword}" will delete your timecard`,
+          `Set your personal IANA timezone; Entering "${resetUserTimezoneKeyword}" will delete your timecard`,
         )
         .setRequired(false)
         .setAutocomplete(true),
