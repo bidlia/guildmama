@@ -14,8 +14,8 @@ export function buildGlobalTimecard(
   const userProfile = profiles.find((prf) => prf.id == interaction.user.id);
   const userLocalTime =
     userProfile && userProfile.timezone != ""
-      ? `currently set to: ${userProfile.timezone}`
-      : "not tracked.  •  Configure your timezone with '/time set:<IANA timezone>'";
+      ? `currently set to ${userProfile.timezone}`
+      : "not tracked  •  Set it with /time set:<timezone>";
 
   const groups: Record<string, string[]> = {};
   getProfileTimes(profiles).forEach((prf) => {
