@@ -12,10 +12,10 @@ export function buildGlobalTimecard(
   profiles: Profile[],
 ): EmbedBuilder {
   const userProfile = profiles.find((prf) => prf.id == interaction.user.id);
-  const userLocalTime =
+  const userNote =
     userProfile && userProfile.timezone != ""
-      ? `currently set to ${userProfile.timezone}`
-      : "not tracked  •  Set it with /time set:<timezone>";
+      ? `Your timezone is currently set to \`${userProfile.timezone}\``
+      : "Set your timezone with \`/time set:<timezone>\`";
 
   const groups: Record<string, string[]> = {};
   getProfileTimes(profiles).forEach((prf) => {
@@ -24,14 +24,16 @@ export function buildGlobalTimecard(
   });
 
   const timefields = Object.entries(groups).map(([timeString, members]) => {
-    return { name: timeString, value: members.join("\n"), inline: true };
+    return { name: timeString, value: members.sort().join("\n"), inline: true };
   });
 
   const embed = new EmbedBuilder()
     .setTitle("Global Timecard  🗺️")
     .setColor(RELEASE.TINT)
-    .addFields(timefields)
-    .setFooter({ text: `Your timezone is ${userLocalTime}` });
+    .addFields(...timefields, {
+      name: "",
+      value: userNote,
+    });
 
   return embed;
 }
