@@ -64,7 +64,7 @@ const command: Command = {
       const profile = await getProfile(getOption.id);
       if (!profile || !profile.timezone)
         return interaction.reply({
-          content: `${getOption.displayName} has not configured their timezone.`,
+          content: `**${getOption.displayName}** has not configured their timezone.`,
           flags: MessageFlags.Ephemeral,
         });
 

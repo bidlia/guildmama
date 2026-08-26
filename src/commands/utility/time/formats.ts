@@ -15,7 +15,7 @@ export function buildGlobalTimecard(
   const userNote =
     userProfile && userProfile.timezone != ""
       ? `Your timezone is currently set to \`${userProfile.timezone}\``
-      : "Set your timezone with \`/time set:<timezone>\`";
+      : "Add your timezone with \`/time set:<timezone>\`";
 
   const groups: Record<string, string[]> = {};
   getProfileTimes(profiles).forEach((prf) => {
