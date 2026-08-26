@@ -39,5 +39,6 @@ export function buildCommandHelpEmbed(command: Command): EmbedBuilder {
       .setFooter({
         text: "<required>  •  [optional]",
       });
+  else embed.setDescription(command.data.description);
   return embed;
 }
