@@ -12,9 +12,10 @@ export function buildGlobalTimecard(
   profiles: Profile[],
 ): EmbedBuilder {
   const userProfile = profiles.find((prf) => prf.id == interaction.user.id);
-  const userLocalTime = userProfile
-    ? `currently set to: ${userProfile.timezone}`
-    : "not tracked.  •  Configure your timezone with '/time set:<IANA timezone>'";
+  const userLocalTime =
+    userProfile && userProfile.timezone != ""
+      ? `currently set to: ${userProfile.timezone}`
+      : "not tracked.  •  Configure your timezone with '/time set:<IANA timezone>'";
 
   const groups: Record<string, string[]> = {};
   getProfileTimes(profiles).forEach((prf) => {
