@@ -16,7 +16,7 @@ export function buildGeneralHelpEmbed(client: Client<true>): EmbedBuilder {
     .addFields({
       name: "Available commands",
       value: commandList.concat(
-        `\n\nUse \`/help with:<name>\` for more info on a given command!\n`,
+        `\n\nUse \`/help with:<command>\` for more info on a given command!\n`,
       ),
     })
     .setFooter({
