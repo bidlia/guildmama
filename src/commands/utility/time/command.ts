@@ -140,7 +140,7 @@ async function updateTimezone(
   verifyTimezoneIntegrity(interaction, timezone, resetKeyword);
 
   await upsertProfile(user.id, {
-    timezone: timezone,
+    timezone: timezone === "none" ? "" : timezone,
   });
 
   return interaction.reply({
