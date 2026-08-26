@@ -15,6 +15,10 @@ import { getProfile, upsertProfile } from "../../../utils/database";
 const resetUserTimezoneKeyword = "none";
 
 const command: Command = {
+  usage: {
+    get: { value: "@user", required: true },
+    set: { value: "timezone", required: true },
+  },
   data: new SlashCommandBuilder()
     .setName("time")
     .setDescription(

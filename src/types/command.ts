@@ -7,6 +7,7 @@ import {
 } from "discord.js";
 
 export interface Command {
+  usage?: UsageDeclaration;
   data:
     | SlashCommandBuilder
     | SlashCommandOptionsOnlyBuilder
@@ -14,4 +15,8 @@ export interface Command {
   category?: string;
   execute: (interaction: ChatInputCommandInteraction) => Promise<unknown>;
   autocomplete?: (interaction: AutocompleteInteraction) => Promise<unknown>;
+}
+
+export interface UsageDeclaration {
+  [option: string]: { value: string; required: boolean };
 }

@@ -1,6 +1,7 @@
 import { Client, EmbedBuilder } from "discord.js";
 import { RELEASE, VERSION } from "../../../utils/constants";
 import { Command } from "../../../types/command";
+import { parseUsage } from "./usage";
 
 export function buildGeneralHelpEmbed(client: Client<true>): EmbedBuilder {
   const commandList = client.commands
@@ -15,7 +16,7 @@ export function buildGeneralHelpEmbed(client: Client<true>): EmbedBuilder {
     .addFields({
       name: "Available commands",
       value: commandList.concat(
-        `\n\nUse \`/help command:<name>\` for more info on a given command!\n`,
+        `\n\nUse \`/help with:<name>\` for more info on a given command!\n`,
       ),
     })
     .setFooter({
@@ -25,29 +26,18 @@ export function buildGeneralHelpEmbed(client: Client<true>): EmbedBuilder {
 
 export function buildCommandHelpEmbed(command: Command): EmbedBuilder {
   const embed = new EmbedBuilder()
-    .setAuthor({ name: command.category! })
-    .setTitle("/" + command.data.name)
-    .setDescription(command.data.description)
+    .setAuthor({ name: `${command.category} category` })
+    .setTitle(`\`${command.data.name}\``)
     .setColor(RELEASE.TINT);
 
   if (command.data.options.length > 0)
     embed
       .addFields({
         name: "Usage",
-        value: getUsageString(command),
+        value: parseUsage(command).join("\n"),
       })
-      .setFooter({ text: "<required>  •  [optional]" });
+      .setFooter({
+        text: "<required>  •  [optional]",
+      });
   return embed;
-}
-
-export function getUsageString(command: Command): string {
-  const formattedArguments = command.data.options.map((option) => {
-    const optionData = option.toJSON();
-
-    return optionData.required
-      ? `\`/${command.data.name} <${optionData.name}>\``
-      : `\`/${command.data.name} [${optionData.name}]\``;
-  });
-
-  return formattedArguments.join("\n");
 }
