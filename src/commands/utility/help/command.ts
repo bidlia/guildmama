@@ -9,6 +9,9 @@ import {
 import { buildCommandHelpEmbed, buildGeneralHelpEmbed } from "./formats";
 
 const command: Command = {
+  usage: {
+    with: { value: "command", required: true },
+  },
   data: new SlashCommandBuilder()
     .setName("help")
     .setDescription(
@@ -16,14 +19,12 @@ const command: Command = {
     )
     .addStringOption((option) =>
       option
-        .setName("command")
-        .setDescription("The specific command you want information on")
+        .setName("with")
+        .setDescription("Get help with a specific command")
         .setAutocomplete(true),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
-    const targetCommand = interaction.options
-      .getString("command")
-      ?.toLowerCase();
+    const targetCommand = interaction.options.getString("with")?.toLowerCase();
 
     if (targetCommand) {
       const command = interaction.client.commands.get(targetCommand);

@@ -11,7 +11,7 @@ const commitHash = (() => {
   try {
     return execSync("git rev-parse --short HEAD").toString().trim();
   } catch {
-    process.kill(1);
+    process.exit(1);
   }
 })();
 
