@@ -7,7 +7,7 @@ export function buildGeneralHelpEmbed(client: Client<true>): EmbedBuilder {
   const commandList = client.commands
     .map((cmd) => `\`/${cmd.data.name}\` *${cmd.data.description}*`)
     .join("\n");
-  const versionHex = `0x${RELEASE.TINT.toString(16).toUpperCase().padStart(6, "0")}`;
+  const versionHex = `#${RELEASE.TINT.toString(16).toUpperCase().padStart(6, "0")}`;
 
   return new EmbedBuilder()
     .setThumbnail(client.user.displayAvatarURL({ size: 1024 }))
@@ -20,7 +20,7 @@ export function buildGeneralHelpEmbed(client: Client<true>): EmbedBuilder {
       ),
     })
     .setFooter({
-      text: `Version ${VERSION}  •  ${process.env.IS_DEVELOPMENT_BUILD ? "Development build" : "Public release"}  •  Build tint: ${versionHex}`,
+      text: `Version ${VERSION}  •  ${process.env.IS_DEVELOPMENT_BUILD ? "Development build" : "Public release"}  •  Build tint ${versionHex}`,
     });
 }
 
