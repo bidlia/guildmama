@@ -1,7 +1,7 @@
 import { Client, EmbedBuilder } from "discord.js";
 import { RELEASE, VERSION } from "../../../utils/constants";
 import { Command } from "../../../types/command";
-import { parseUsage } from "./usage";
+import { parseUsageStrings } from "./usage";
 
 export function buildGeneralHelpEmbed(client: Client<true>): EmbedBuilder {
   const commandList = client.commands
@@ -11,12 +11,13 @@ export function buildGeneralHelpEmbed(client: Client<true>): EmbedBuilder {
 
   return new EmbedBuilder()
     .setThumbnail(client.user.displayAvatarURL({ size: 1024 }))
-    .setTitle("Hey Doodle!")
+    .setTitle("Hey Doodle!  📚")
+    .setDescription("Looking for something?")
     .setColor(RELEASE.TINT)
     .addFields({
-      name: "Available commands",
+      name: "My commands are",
       value: commandList.concat(
-        `\n\nUse \`/help with:<command>\` for more info on a given command!\n`,
+        `\n\nUse \`/help with:<command>\` for more info on a given command!`,
       ),
     })
     .setFooter({
@@ -26,19 +27,16 @@ export function buildGeneralHelpEmbed(client: Client<true>): EmbedBuilder {
 
 export function buildCommandHelpEmbed(command: Command): EmbedBuilder {
   const embed = new EmbedBuilder()
-    .setAuthor({ name: `${command.category} category` })
-    .setTitle(`\`${command.data.name}\``)
+    .setAuthor({ name: `${command.category} command` })
+    .setTitle(`\`/${command.data.name}\``)
+    .setDescription(`*${command.data.description}*`)
     .setColor(RELEASE.TINT);
 
-  if (command.data.options.length > 0)
-    embed
-      .addFields({
-        name: "Usage",
-        value: parseUsage(command).join("\n"),
-      })
-      .setFooter({
-        text: "<required>  •  [optional]",
-      });
+  if (command.usage.children)
+    embed.addFields({
+      name: "Usage",
+      value: parseUsageStrings(command).join("\n"),
+    });
   else embed.setDescription(command.data.description);
   return embed;
 }

@@ -7,9 +7,12 @@ import { Command } from "../../types/command";
 import { EmbedBuilder } from "@discordjs/builders";
 
 const command: Command = {
+  usage: {
+    name: "ping",
+  },
   data: new SlashCommandBuilder()
     .setName("ping")
-    .setDescription("Provides Bot latency and API ping"),
+    .setDescription("Check my latency and API ping"),
   async execute(interaction: ChatInputCommandInteraction) {
     const deferredReply = await interaction.deferReply({
       withResponse: true,

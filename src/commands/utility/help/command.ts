@@ -10,13 +10,23 @@ import { buildCommandHelpEmbed, buildGeneralHelpEmbed } from "./formats";
 
 const command: Command = {
   usage: {
-    with: { value: "command", required: true },
+    name: "help",
+    description: "Peep my info card!",
+    children: [
+      {
+        description: "Get help with a specific command",
+        options: [
+          {
+            name: "with",
+            arg: "command",
+          },
+        ],
+      },
+    ],
   },
   data: new SlashCommandBuilder()
     .setName("help")
-    .setDescription(
-      "Provides general bot information, or usage for a specific command",
-    )
+    .setDescription("View my info card, or usage for a specific command")
     .addStringOption((option) =>
       option
         .setName("with")

@@ -16,14 +16,32 @@ const resetUserTimezoneKeyword = "none";
 
 const command: Command = {
   usage: {
-    get: { value: "@user", required: true },
-    set: { value: "timezone", required: true },
+    name: "time",
+    description: "Get the global timecard",
+    children: [
+      {
+        description: "Get a specific user's timecard",
+        options: [
+          {
+            name: "get",
+            arg: "@user",
+          },
+        ],
+      },
+      {
+        description: "Set your timezone",
+        options: [
+          {
+            name: "set",
+            arg: "timezone",
+          },
+        ],
+      },
+    ],
   },
   data: new SlashCommandBuilder()
     .setName("time")
-    .setDescription(
-      "View a global or user specific timecard, or set your own timezone",
-    )
+    .setDescription("View user timecards, or set your own timezone")
     .addUserOption((option) =>
       option
         .setName("get")
