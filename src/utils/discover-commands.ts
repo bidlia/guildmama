@@ -16,7 +16,7 @@ export function discoverCommands(operatingDir: string): Command[] {
       withFileTypes: true,
     })) {
       if (categoryEntry.isFile() && categoryEntry.name.endsWith(".js"))
-        verifyCommandIntegrity(
+        verifyCommandAndPush(
           join(commandCategoryPath, categoryEntry.name),
           commandCategory,
           commands,
@@ -28,11 +28,7 @@ export function discoverCommands(operatingDir: string): Command[] {
           "command.js",
         );
         if (existsSync(probableCommandPath))
-          verifyCommandIntegrity(
-            probableCommandPath,
-            commandCategory,
-            commands,
-          );
+          verifyCommandAndPush(probableCommandPath, commandCategory, commands);
       }
     }
   }
@@ -40,7 +36,7 @@ export function discoverCommands(operatingDir: string): Command[] {
   return commands;
 }
 
-function verifyCommandIntegrity(
+function verifyCommandAndPush(
   commandPath: string,
   commandCategory: string,
   commands: Command[],
