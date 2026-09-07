@@ -53,10 +53,10 @@ export function buildFailureCard(
   resetWord: string,
 ): EmbedBuilder {
   return new EmbedBuilder()
-    .setAuthor({ name: "Invalid timezone!" })
-    .setTitle(`\`${attempt}\` isn't a recognized IANA timezone!`)
+    .setAuthor({ name: "Invalid timezone" })
+    .setTitle(`\`${attempt}\` isn't a recognized IANA timezone.`)
     .setDescription(
-      `Please choose an option directly from the drop-down menu.\n\nYou can also use \`/time set:${resetWord}\` to remove your timecard.`,
+      `Please choose an option directly from the suggestions.\n\nYou can also use \`/time set:${resetWord}\` to remove your timecard.`,
     );
 }
 
