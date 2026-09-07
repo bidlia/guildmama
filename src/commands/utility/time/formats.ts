@@ -38,14 +38,26 @@ export function buildGlobalTimecard(
   return embed;
 }
 
-export async function buildSingleTimecard(
+export function buildSingleTimecard(
   user: User,
   userProfile: Profile,
-): Promise<EmbedBuilder> {
+): EmbedBuilder {
   return new EmbedBuilder()
-    .setAuthor({ name: `${user.displayName}'s local time  ⏰` })
+    .setAuthor({ name: `${user.displayName}'s local time` })
     .setTitle(getProfileTimes([userProfile])[0].time)
     .setColor(RELEASE.TINT);
+}
+
+export function buildFailureCard(
+  attempt: string,
+  resetWord: string,
+): EmbedBuilder {
+  return new EmbedBuilder()
+    .setAuthor({ name: "Invalid timezone!" })
+    .setTitle(`\`${attempt}\` isn't a recognized IANA timezone!`)
+    .setDescription(
+      `Please choose an option directly from the drop-down menu.\n\nYou can also use \`/time set:${resetWord}\` to remove your timecard.`,
+    );
 }
 
 function getProfileTimes(
