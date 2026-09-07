@@ -9,7 +9,7 @@ export const APPLICATION_ID = deriveEnvConstants("APPLICATION_ID");
 
 const commitHash = (() => {
   try {
-    return execSync("git rev-parse --short HEAD").toString().trim();
+    return execSync("git rev-parse HEAD").toString().trim();
   } catch {
     process.exit(1);
   }
