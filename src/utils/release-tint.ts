@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 
-export function generateReleaseTint(object: Object): number {
-  const objectString = JSON.stringify(object);
+export function generateReleaseTint(donor: string): number {
+  const objectString = JSON.stringify(donor);
   const sha256Hex = createHash("sha256").update(objectString).digest("hex");
   const hashInteger = parseInt(sha256Hex.slice(0, 8), 16);
   const hue = hashInteger % 360;
