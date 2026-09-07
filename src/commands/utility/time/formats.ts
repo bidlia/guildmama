@@ -57,7 +57,8 @@ export function buildFailureCard(
     .setTitle(`\`${attempt}\` isn't a recognized IANA timezone.`)
     .setDescription(
       `Please choose an option directly from the suggestions.\n\nYou can also use \`/time set:${resetWord}\` to remove your timecard.`,
-    );
+    )
+    .setColor(RELEASE.TINT);
 }
 
 function getProfileTimes(

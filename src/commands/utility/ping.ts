@@ -55,9 +55,9 @@ function pingToHealthMessage(
   ping: number,
 ):
   | " great!"
-  | " alright."
-  | "n't great.\nSorry, I'm driving through a tunnel. 😔" {
+  | " alright"
+  | "n't great\nSorry, I'm driving through a tunnel  😔" {
   if (ping <= 250) return " great!";
-  else if (ping > 250 && ping <= 600) return " alright.";
-  return "n't great.\nSorry, I'm driving through a tunnel. 😔";
+  else if (ping > 250 && ping <= 600) return " alright";
+  return "n't great\nSorry, I'm driving through a tunnel  😔";
 }
