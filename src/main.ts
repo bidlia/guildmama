@@ -56,9 +56,15 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         flags: MessageFlags.Ephemeral,
       };
 
-      if (interaction.replied || interaction.deferred)
-        await interaction.followUp(apologyMessage);
-      else await interaction.reply(apologyMessage);
+      try {
+        if (interaction.replied || interaction.deferred) {
+          await interaction.followUp(apologyMessage);
+        } else {
+          await interaction.reply(apologyMessage);
+        }
+      } catch (err) {
+        console.error("[Err]: Failed to forward error notice to user: ", err);
+      }
     }
   } else if (interaction.isAutocomplete()) {
     try {

@@ -8,7 +8,11 @@ import {
 import { Command } from "../../../types/command";
 import { db } from "../../../database";
 import { DEVELOPER_ID, GUILD_ID } from "../../../utils/constants";
-import { buildGlobalTimecard, buildSingleTimecard } from "./formats";
+import {
+  buildFailureCard,
+  buildGlobalTimecard,
+  buildSingleTimecard,
+} from "./formats";
 import { provideAutocompleteChoices } from "../../../utils/autocomplete";
 import { getProfile, upsertProfile } from "../../../utils/database";
 
@@ -64,7 +68,7 @@ const command: Command = {
     if (setOption && getOption) {
       if (DEVELOPER_ID !== interaction.user.id) {
         return interaction.reply({
-          content: "Please submit one sub-command at a time!",
+          content: "Please submit one option at a time!",
           flags: MessageFlags.Ephemeral,
         });
       } else {
@@ -87,7 +91,7 @@ const command: Command = {
         });
 
       return interaction.reply({
-        embeds: [await buildSingleTimecard(getOption, profile)],
+        embeds: [buildSingleTimecard(getOption, profile)],
         flags: MessageFlags.Ephemeral,
       });
     }
@@ -132,19 +136,12 @@ const command: Command = {
 
 export default command;
 
-function verifyTimezoneIntegrity(
-  interaction: ChatInputCommandInteraction,
-  timezone: string,
-  resetKeyword: string,
-) {
+function verifyTimezoneIntegrity(timezone: string) {
   try {
-    if (timezone != resetKeyword)
-      Intl.DateTimeFormat(undefined, { timeZone: timezone });
+    Intl.DateTimeFormat(undefined, { timeZone: timezone });
+    return true;
   } catch {
-    return interaction.reply({
-      content: `The provided option, **${timezone}**, is not a valid IANA timezone.\nPlease choose an option directly from the drop-down menu.\n(Tip: Use \`/time set:${resetUserTimezoneKeyword}\` to reset your timecard.)`,
-      flags: MessageFlags.Ephemeral,
-    });
+    return false;
   }
 }
 
@@ -155,7 +152,11 @@ async function updateTimezone(
   resetKeyword: string,
   settingSelf: boolean,
 ) {
-  verifyTimezoneIntegrity(interaction, timezone, resetKeyword);
+  if (timezone != resetKeyword && !verifyTimezoneIntegrity(timezone))
+    return interaction.reply({
+      embeds: [buildFailureCard(timezone, resetKeyword)],
+      flags: MessageFlags.Ephemeral,
+    });
 
   await upsertProfile(user.id, {
     timezone: timezone === "none" ? "" : timezone,
