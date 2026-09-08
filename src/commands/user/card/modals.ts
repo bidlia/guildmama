@@ -7,7 +7,11 @@ import {
   TextInputStyle,
 } from "discord.js";
 import { getProfile, upsertProfile } from "../../../utils/database";
-import { buildMainEditorRow, buildUserProfileCard } from "./formats";
+import {
+  buildMainEditorRow,
+  buildUserProfileCard,
+  getNickname,
+} from "./formats";
 
 const HEX_PATTERN = /^#?[0-9a-fA-F]{6}$/;
 
@@ -92,7 +96,13 @@ export async function handleCardModals(
   });
 
   return interaction.update({
-    embeds: [await buildUserProfileCard(interaction.user, profile)],
+    embeds: [
+      await buildUserProfileCard(
+        interaction.user,
+        await getNickname(interaction.user, interaction),
+        profile,
+      ),
+    ],
     components: buildMainEditorRow(),
   });
 }

@@ -2,7 +2,11 @@ import { ButtonInteraction } from "discord.js";
 import { showInfoModal } from "./modals";
 import { showGenerationSelect } from "./selects";
 import { showGrid, toggleGridItem, submitGrid, cancelGrid } from "./grids";
-import { buildMainEditorRow, buildUserProfileCard } from "./formats";
+import {
+  buildMainEditorRow,
+  buildUserProfileCard,
+  getNickname,
+} from "./formats";
 import { upsertProfile } from "../../../utils/database";
 import { GridCategory } from "../../../types/command";
 
@@ -41,6 +45,7 @@ export async function handleCardButtons(
           embeds: [
             await buildUserProfileCard(
               interaction.user,
+              await getNickname(interaction.user, interaction),
               await upsertProfile(interaction.user.id),
             ),
           ],

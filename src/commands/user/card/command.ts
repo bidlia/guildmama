@@ -5,11 +5,14 @@ import {
 } from "discord.js";
 import { Command } from "../../../types/command";
 import { upsertProfile } from "../../../utils/database";
-import { buildMainEditorRow, buildUserProfileCard } from "./formats";
+import {
+  buildMainEditorRow,
+  buildUserProfileCard,
+  getNickname,
+} from "./formats";
 import { handleCardButtons } from "./buttons";
 import { handleCardModals } from "./modals";
 import { handleCardSelects } from "./selects";
-import { DEVELOPER_ID } from "../../../utils/constants";
 
 const command: Command = {
   usage: {
@@ -42,14 +45,16 @@ const command: Command = {
     const targetUser = getOption ? getOption : interaction.user;
     const profile = await upsertProfile(targetUser.id);
 
+    const nickname = await getNickname(targetUser, interaction);
+
     if (targetUser.id != interaction.user.id)
       return await interaction.reply({
-        embeds: [await buildUserProfileCard(targetUser, profile)],
+        embeds: [await buildUserProfileCard(targetUser, nickname, profile)],
         flags: MessageFlags.Ephemeral,
       });
 
     return interaction.reply({
-      embeds: [await buildUserProfileCard(targetUser, profile)],
+      embeds: [await buildUserProfileCard(targetUser, nickname, profile)],
       components: buildMainEditorRow(),
       flags: MessageFlags.Ephemeral,
     });

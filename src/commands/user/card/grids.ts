@@ -6,7 +6,11 @@ import {
   parseEmoji,
 } from "discord.js";
 import type { Profile } from "@prisma/client";
-import { buildUserProfileCard, buildMainEditorRow } from "./formats";
+import {
+  buildUserProfileCard,
+  buildMainEditorRow,
+  getNickname,
+} from "./formats";
 import { EMOJIS } from "../../../utils/emoji";
 import { getProfile, upsertProfile } from "../../../utils/database";
 import { toggleBit } from "../../../utils/bitmask";
@@ -110,7 +114,13 @@ export async function submitGrid(
   snapshots.delete(snapshotKey(interaction.user.id, category));
   const profile = await getProfile(interaction.user.id);
   return interaction.update({
-    embeds: [await buildUserProfileCard(interaction.user, profile!)],
+    embeds: [
+      await buildUserProfileCard(
+        interaction.user,
+        await getNickname(interaction.user, interaction),
+        profile!,
+      ),
+    ],
     components: buildMainEditorRow(),
   });
 }
@@ -127,7 +137,13 @@ export async function cancelGrid(
     [CATEGORY_FIELD[category]]: originalMask,
   } as Partial<Profile>);
   return interaction.update({
-    embeds: [await buildUserProfileCard(interaction.user, profile)],
+    embeds: [
+      await buildUserProfileCard(
+        interaction.user,
+        await getNickname(interaction.user, interaction),
+        profile,
+      ),
+    ],
     components: buildMainEditorRow(),
   });
 }
