@@ -106,7 +106,7 @@ export function buildMainEditorRow(): ActionRowBuilder<ButtonBuilder>[] {
   const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId("card:open:info")
-      .setLabel("Edit Info")
+      .setLabel("Customize")
       .setStyle(ButtonStyle.Primary),
     new ButtonBuilder()
       .setCustomId("card:open:generation")
