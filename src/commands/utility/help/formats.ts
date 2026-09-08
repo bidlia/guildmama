@@ -1,7 +1,9 @@
-import { Client, EmbedBuilder } from "discord.js";
+import { ChatInputCommandInteraction, Client, EmbedBuilder } from "discord.js";
 import { RELEASE, VERSION } from "../../../utils/constants";
 import { Command } from "../../../types/command";
 import { parseUsageStrings } from "./usage";
+import { capitalize } from "../../../utils/format";
+import { getColourPreference } from "../../../utils/database";
 
 export function buildGeneralHelpEmbed(client: Client<true>): EmbedBuilder {
   const commandList = client.commands
@@ -25,12 +27,15 @@ export function buildGeneralHelpEmbed(client: Client<true>): EmbedBuilder {
     });
 }
 
-export function buildCommandHelpEmbed(command: Command): EmbedBuilder {
+export async function buildCommandHelpEmbed(
+  interaction: ChatInputCommandInteraction,
+  command: Command,
+): Promise<EmbedBuilder> {
   const embed = new EmbedBuilder()
-    .setAuthor({ name: `${command.category} command` })
+    .setAuthor({ name: `${capitalize(command.category!)} command` })
     .setTitle(`\`/${command.data.name}\``)
     .setDescription(`*${command.data.description}*`)
-    .setColor(RELEASE.TINT);
+    .setColor(await getColourPreference(interaction.user.id));
 
   if (command.usage.children)
     embed.addFields({

@@ -6,12 +6,15 @@ import {
   convertOffsetToGlobeEmoji,
   getTimezoneUtcOffset,
 } from "../../../utils/time";
+import { getColourPreference } from "../../../utils/database";
 
-export function buildGlobalTimecard(
+export async function buildGlobalTimecard(
   interaction: Interaction,
   profiles: Profile[],
-): EmbedBuilder {
-  const userProfile = profiles.find((prf) => prf.id == interaction.user.id);
+): Promise<EmbedBuilder> {
+  const userProfile = profiles.find(
+    (prf) => prf.id == interaction.user.id,
+  ) as Profile;
   const userNote =
     userProfile && userProfile.timezone != ""
       ? `Your timezone is currently set to \`${userProfile.timezone}\``
@@ -29,7 +32,7 @@ export function buildGlobalTimecard(
 
   const embed = new EmbedBuilder()
     .setTitle("Global Timecard  🗺️")
-    .setColor(RELEASE.TINT)
+    .setColor(await getColourPreference(userProfile))
     .addFields(...timefields, {
       name: "",
       value: userNote,
@@ -38,14 +41,14 @@ export function buildGlobalTimecard(
   return embed;
 }
 
-export function buildSingleTimecard(
+export async function buildSingleTimecard(
   user: User,
   userProfile: Profile,
-): EmbedBuilder {
+): Promise<EmbedBuilder> {
   return new EmbedBuilder()
     .setAuthor({ name: `${user.displayName}'s local time` })
     .setTitle(getProfileTimes([userProfile])[0].time)
-    .setColor(RELEASE.TINT);
+    .setColor(await getColourPreference(userProfile));
 }
 
 export function buildFailureCard(

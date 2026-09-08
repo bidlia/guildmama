@@ -24,7 +24,7 @@ const command: Command = {
     description: "Get the global timecard",
     children: [
       {
-        description: "Get a specific user's timecard",
+        description: "Get a specific member's timecard",
         options: [
           {
             name: "get",
@@ -45,11 +45,11 @@ const command: Command = {
   },
   data: new SlashCommandBuilder()
     .setName("time")
-    .setDescription("View user timecards, or set your own timezone")
+    .setDescription("View member timecards, or manage your own timezone")
     .addUserOption((option) =>
       option
         .setName("get")
-        .setDescription("Get a specific user's timecard")
+        .setDescription("Get a specific member's timecard")
         .setRequired(false),
     )
     .addStringOption((option) =>
@@ -91,7 +91,7 @@ const command: Command = {
         });
 
       return interaction.reply({
-        embeds: [buildSingleTimecard(getOption, profile)],
+        embeds: [await buildSingleTimecard(getOption, profile)],
         flags: MessageFlags.Ephemeral,
       });
     }
@@ -121,7 +121,7 @@ const command: Command = {
     }
 
     return interaction.reply({
-      embeds: [buildGlobalTimecard(interaction, allProfiles)],
+      embeds: [await buildGlobalTimecard(interaction, allProfiles)],
       flags: MessageFlags.Ephemeral,
     });
   },
