@@ -19,7 +19,10 @@ model Profile {
   customTitle         String    @default("Ace Hunter")
   customComment       String    @default("")
   generation          Int       @default(0)
-  weaponBitMask       Int       @default(0)
+
+  weaponsBitmask      Int       @default(0)
+  platformsBitmask    Int       @default(0)
+  gamesBitmask        Int       @default(0)
 
   guildId             String 
   guild               Guild     @relation(fields: [guildId], references: [id])

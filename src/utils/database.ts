@@ -1,6 +1,6 @@
 import { Prisma, Profile } from "@prisma/client";
 import { db } from "../database";
-import { GUILD_ID } from "./constants";
+import { GUILD_ID, RELEASE } from "./constants";
 
 export async function upsertProfile(
   userId: string,
@@ -23,4 +23,13 @@ export async function getProfile(userId: string): Promise<Profile | null> {
       id: userId,
     },
   });
+}
+
+export async function getColourPreference(
+  user: string | Profile,
+): Promise<number> {
+  const profile = typeof user === "string" ? await getProfile(user) : user;
+
+  if (!profile || profile.customColour === 0) return RELEASE.TINT;
+  return profile.customColour;
 }

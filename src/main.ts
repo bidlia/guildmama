@@ -1,5 +1,4 @@
 /// <reference path="./types/discord.d.ts" />
-
 import {
   ActivityType,
   Client,
@@ -15,6 +14,10 @@ import { VERSION } from "./utils/constants";
 import { handleShutdown } from "./handlers/shutdown";
 import { handleChatInput } from "./handlers/chat-input";
 import { handleAutocomplete } from "./handlers/autocomplete";
+import { fetchApplicationEmojis } from "./utils/emoji";
+import { handleComponent } from "./handlers/component";
+
+let isFinishedStartup = false;
 
 const client = new Client({
   intents: [
@@ -29,10 +32,16 @@ for (const command of discoverCommands(__dirname)) {
   client.commands.set(command.data.name, command);
 }
 
-client.once(Events.ClientReady, (client: Client<true>) => {
+client.once(Events.ClientReady, async (client: Client<true>) => {
+  console.log("[Boot]: Fetching application emojis...");
+  await fetchApplicationEmojis(client);
+  console.log("[Boot]: Emojis collected.");
+
   console.log(
-    `Awake and ready on client ${client.user.username}! (${client.user.id})`,
+    `[Boot]: Awake and ready on client ${client.user.username}! (${client.user.id})`,
   );
+
+  isFinishedStartup = true;
 
   client.user.setActivity(
     `Version ${VERSION} ${process.env.IS_DEVELOPMENT_BUILD ? "🪲" : "⭐"}`,
@@ -43,7 +52,16 @@ client.once(Events.ClientReady, (client: Client<true>) => {
 });
 
 client.on(Events.InteractionCreate, async (interaction: Interaction) => {
-  if (interaction.isChatInputCommand()) {
+  if (!isFinishedStartup) {
+    if (interaction.isRepliable())
+      return interaction.reply({
+        content:
+          "Sorry, but I'm still waking up. Give me a few moments to shake off the rust!  ☁️",
+      });
+    return console.error(
+      "[Err]: Received interaction while starting up. Discarding.",
+    );
+  } else if (interaction.isChatInputCommand()) {
     try {
       await handleChatInput(interaction);
     } catch (err) {
@@ -75,7 +93,12 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
         err,
       );
     }
-  }
+  } else if (
+    interaction.isButton() ||
+    interaction.isModalSubmit() ||
+    interaction.isStringSelectMenu()
+  )
+    handleComponent(interaction);
 });
 
 client.login(process.env.CLIENT_TOKEN);

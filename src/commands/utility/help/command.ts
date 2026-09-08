@@ -26,7 +26,7 @@ const command: Command = {
   },
   data: new SlashCommandBuilder()
     .setName("help")
-    .setDescription("View my info card, or usage for a specific command")
+    .setDescription("View my info card, or get usage for a specific command")
     .addStringOption((option) =>
       option
         .setName("with")
@@ -47,7 +47,7 @@ const command: Command = {
       }
 
       return interaction.reply({
-        embeds: [buildCommandHelpEmbed(command)],
+        embeds: [await buildCommandHelpEmbed(interaction, command)],
         flags: MessageFlags.Ephemeral,
       });
     }
