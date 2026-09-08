@@ -13,6 +13,7 @@ import { getColourPreference } from "../../../utils/database";
 import { emojisFromBitmask } from "../../../utils/bitmask";
 import { DOMAINS } from "../../../utils/constants";
 import { EMOJIS } from "../../../utils/emoji";
+import { convertTimeToClockEmoji } from "../../../utils/time";
 
 export async function buildUserProfileCard(
   user: User,
@@ -29,28 +30,19 @@ export async function buildUserProfileCard(
       : ":wave:  Hello there!",
   );
 
+  if (profile.inGameName.length > 0)
+    embed.setDescription(
+      `:identification_card:  Wilds Hunter ID \`${profile.inGameName}\``,
+    );
+
   const header: string[] = [displayName];
 
-  if (profile.authorityLevel == 0) header.push("Guildmaster");
   if (profile.customTitle.length > 0) header.push(profile.customTitle);
+  if (profile.authorityLevel == 0) header.push("Guildmaster");
 
   embed.setAuthor({ name: header.join("  •  ") });
 
   const fields: APIEmbedField[] = [];
-
-  if (profile.platformsBitmask > 0)
-    fields.push({
-      name: "Platforms",
-      value: foldContents(
-        emojisFromBitmask(
-          DOMAINS.PLATFORMS,
-          EMOJIS.PLATFORMS,
-          profile.platformsBitmask,
-        ),
-        3,
-      ),
-      inline: true,
-    });
 
   if (profile.gamesBitmask > 0)
     fields.push({
@@ -73,31 +65,48 @@ export async function buildUserProfileCard(
         ),
         7,
       ),
+      inline: true,
+    });
+
+  if (profile.platformsBitmask > 0)
+    fields.push({
+      name: "Platforms",
+      value: foldContents(
+        emojisFromBitmask(
+          DOMAINS.PLATFORMS,
+          EMOJIS.PLATFORMS,
+          profile.platformsBitmask,
+        ),
+        3,
+      ),
     });
 
   if (fields.length > 0) embed.addFields(...fields);
 
   const footer: string[] = [];
 
-  if (profile.timezone.length > 0)
-    footer.push(
-      "Local time " +
-        new Intl.DateTimeFormat("en-US", {
-          timeZone: profile.timezone,
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }).format(new Date()),
-    );
+  if (profile.timezone.length > 0) {
+    const emoji = convertTimeToClockEmoji(profile.timezone);
+
+    const time = new Intl.DateTimeFormat("en-US", {
+      timeZone: profile.timezone,
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    }).format(new Date());
+
+    footer.push(`${emoji}  ${time}`);
+  }
 
   if (profile.generation > 0)
-    footer.push(`${addOrdinalSuffix(profile.generation)} generation`);
+    footer.push(`${addOrdinalSuffix(profile.generation)} Generation Hunter`);
   if (profile.customColour > 0)
     footer.push(
-      `Custom tint #${profile.customColour.toString(16).toUpperCase().padStart(6, "0")}`,
+      `*#${profile.customColour.toString(16).toUpperCase().padStart(6, "0")}*`,
     );
 
-  if (footer.length > 0) embed.setFooter({ text: footer.join("  •  ") });
+  if (footer.length > 0)
+    embed.addFields({ name: "", value: footer.join("  •  ") });
 
   return embed;
 }
