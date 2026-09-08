@@ -6,7 +6,11 @@ import {
   StringSelectMenuBuilder,
   StringSelectMenuInteraction,
 } from "discord.js";
-import { buildUserProfileCard, buildMainEditorRow } from "./formats";
+import {
+  buildUserProfileCard,
+  buildMainEditorRow,
+  getNickname,
+} from "./formats";
 import { upsertProfile } from "../../../utils/database";
 
 const GENERATION_OPTIONS = [
@@ -61,7 +65,13 @@ export async function handleCardSelects(
   });
 
   return interaction.update({
-    embeds: [await buildUserProfileCard(interaction.user, profile)],
+    embeds: [
+      await buildUserProfileCard(
+        interaction.user,
+        await getNickname(interaction.user, interaction),
+        profile,
+      ),
+    ],
     components: buildMainEditorRow(),
   });
 }

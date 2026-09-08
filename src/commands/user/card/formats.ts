@@ -5,6 +5,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
+  Interaction,
   User,
 } from "discord.js";
 import { addOrdinalSuffix } from "../../../utils/format";
@@ -15,12 +16,10 @@ import { EMOJIS } from "../../../utils/emoji";
 
 export async function buildUserProfileCard(
   user: User,
+  displayName: string,
   profile: Profile,
 ): Promise<EmbedBuilder> {
   const embed = new EmbedBuilder()
-    .setAuthor({
-      name: `${user.displayName}${profile.authorityLevel == 0 ? "  •  Guildmaster" : ""}`,
-    })
     .setThumbnail(user.displayAvatarURL())
     .setColor(await getColourPreference(user.id));
 
@@ -30,7 +29,7 @@ export async function buildUserProfileCard(
       : ":wave:  Hello there!",
   );
 
-  const header: string[] = [user.displayName];
+  const header: string[] = [displayName];
 
   if (profile.authorityLevel == 0) header.push("Guildmaster");
   if (profile.customTitle.length > 0) header.push(profile.customTitle);
@@ -137,4 +136,14 @@ function foldContents(contents: string[], foldLength: number): string {
     if (i > 0 && i % foldLength == 0) foldedContents.push(`\n${contents[i]}`);
     else foldedContents.push(contents[i]);
   return foldedContents.join("  ");
+}
+
+export async function getNickname(
+  user: User,
+  interaction: Interaction,
+): Promise<string> {
+  const member = interaction.guild
+    ? await interaction.guild.members.fetch(user.id).catch(() => null)
+    : null;
+  return member?.displayName ?? user.displayName;
 }
