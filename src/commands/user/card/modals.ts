@@ -48,6 +48,17 @@ export async function showInfoModal(interaction: ButtonInteraction) {
     .setLabel("Title")
     .setTextInputComponent(titleInput);
 
+  const idInput = new TextInputBuilder()
+    .setCustomId("id")
+    .setStyle(TextInputStyle.Short)
+    .setMaxLength(8)
+    .setRequired(false)
+    .setValue(profile?.inGameName ?? "");
+
+  const idLabel = new LabelBuilder()
+    .setLabel("Wilds Hunter ID")
+    .setTextInputComponent(idInput);
+
   const colourInput = new TextInputBuilder()
     .setCustomId("colour")
     .setStyle(TextInputStyle.Short)
@@ -56,13 +67,13 @@ export async function showInfoModal(interaction: ButtonInteraction) {
     .setValue(profile?.customColour ? intToHex(profile.customColour) : "");
 
   const colourLabel = new LabelBuilder()
-    .setLabel("Hexadecimal colour code")
+    .setLabel("Custom colour code (hexadecimal)")
     .setTextInputComponent(colourInput);
 
   const modal = new ModalBuilder()
     .setCustomId("card:info")
     .setTitle("Edit Card Info")
-    .addLabelComponents(titleLabel, commentLabel, colourLabel);
+    .addLabelComponents(titleLabel, commentLabel, idLabel, colourLabel);
 
   return interaction.showModal(modal);
 }
@@ -83,6 +94,7 @@ export async function handleCardModals(
 
   const comment = interaction.fields.getTextInputValue("comment").trim();
   const title = interaction.fields.getTextInputValue("title").trim();
+  const id = interaction.fields.getTextInputValue("id").trim();
   const rawColour = interaction.fields.getTextInputValue("colour").trim();
 
   const colourUpdate = HEX_PATTERN.test(rawColour)
@@ -92,6 +104,7 @@ export async function handleCardModals(
   const profile = await upsertProfile(interaction.user.id, {
     customComment: comment,
     customTitle: title,
+    inGameName: id,
     ...colourUpdate,
   });
 
