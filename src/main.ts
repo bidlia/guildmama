@@ -44,7 +44,7 @@ client.once(Events.ClientReady, async (client: Client<true>) => {
   isFinishedStartup = true;
 
   client.user.setActivity(
-    `Version ${VERSION} ${process.env.IS_DEVELOPMENT_BUILD ? "🪲" : "⭐"}`,
+    `Version ${VERSION}  ${process.env.IS_DEVELOPMENT_BUILD ? "🪲" : "📚"}`,
     {
       type: ActivityType.Playing,
     },

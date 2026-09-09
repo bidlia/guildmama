@@ -59,6 +59,8 @@ export interface Option {
   arg: string;
 }
 
+export type SelectField = "GENERATION" | "RANK";
+
 export type GridCategory = Extract<
   keyof typeof DOMAINS,
   "WEAPONS" | "PLATFORMS" | "GAMES"

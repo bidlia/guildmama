@@ -1,18 +1,21 @@
 import { ButtonInteraction } from "discord.js";
 import { showInfoModal } from "./modals";
-import { showGenerationSelect } from "./selects";
-import { showGrid, toggleGridItem, submitGrid, cancelGrid } from "./grids";
 import {
-  buildMainEditorRow,
-  buildUserProfileCard,
-  getNickname,
-} from "./formats";
-import { upsertProfile } from "../../../utils/database";
-import { GridCategory } from "../../../types/command";
+  showSelectField,
+  submitSelectField,
+  cancelSelectField,
+} from "./selects";
+import { GridCategory, SelectField } from "../../../types/command";
+import { cancelGrid, showGrid, submitGrid, toggleGridItem } from "./grids";
 
-const GRID_CATEGORIES: GridCategory[] = ["PLATFORMS", "GAMES", "WEAPONS"];
-const isGridCategory = (cat: string): cat is GridCategory =>
-  (GRID_CATEGORIES as string[]).includes(cat);
+const selectFields: SelectField[] = ["GENERATION", "RANK"];
+const isSelectField = (v: string): v is SelectField =>
+  (selectFields as string[]).includes(v);
+
+const gridCategories: GridCategory[] = ["PLATFORMS", "GAMES", "WEAPONS"];
+const isGridCategory = (v: string): v is GridCategory =>
+  (gridCategories as string[]).includes(v);
+
 export async function handleCardButtons(
   interaction: ButtonInteraction,
   args: string[],
@@ -23,7 +26,7 @@ export async function handleCardButtons(
     case "open": {
       const [field] = rest;
       if (field === "info") return showInfoModal(interaction);
-      if (field === "generation") return showGenerationSelect(interaction);
+      if (isSelectField(field)) return showSelectField(interaction, field);
       if (isGridCategory(field)) return showGrid(interaction, field);
       return console.error(`[Err]: Unknown card open field '${field}'.`);
     }
@@ -34,25 +37,15 @@ export async function handleCardButtons(
       return toggleGridItem(interaction, category, Number(indexStr));
     }
     case "submit": {
-      const [category] = rest;
-      if (isGridCategory(category)) return submitGrid(interaction, category);
+      const [target] = rest;
+      if (isGridCategory(target)) return submitGrid(interaction, target);
+      if (isSelectField(target)) return submitSelectField(interaction, target);
       break;
     }
     case "cancel": {
-      const [category] = rest;
-      if (category === "generation") {
-        return interaction.update({
-          embeds: [
-            await buildUserProfileCard(
-              interaction.user,
-              await getNickname(interaction.user, interaction),
-              await upsertProfile(interaction.user.id),
-            ),
-          ],
-          components: buildMainEditorRow(),
-        });
-      }
-      if (isGridCategory(category)) return cancelGrid(interaction, category);
+      const [target] = rest;
+      if (isGridCategory(target)) return cancelGrid(interaction, target);
+      if (isSelectField(target)) return cancelSelectField(interaction, target);
       break;
     }
     default:
