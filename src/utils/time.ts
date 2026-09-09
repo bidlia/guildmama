@@ -49,7 +49,7 @@ export function convertTimeToClockEmoji(timezone: string): string {
 
   const emojiParts: string[] = [];
 
-  switch (hour! % 12) {
+  switch ((minutes > 45 ? hour + 1 : hour) % 12) {
     case 0:
       emojiParts.push("twelve");
       break;
@@ -87,6 +87,7 @@ export function convertTimeToClockEmoji(timezone: string): string {
       emojiParts.push("eleven");
       break;
   }
+
   emojiParts.push(minutes > 15 && minutes <= 45 ? "thirty" : "oclock");
 
   return `:${emojiParts.join("_")}:`;
