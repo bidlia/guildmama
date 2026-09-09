@@ -9,7 +9,7 @@ import {
   User,
 } from "discord.js";
 import { addOrdinalSuffix } from "../../../utils/format";
-import { getColourPreference } from "../../../utils/database";
+import { getColourPreference, prettifyGameRank } from "../../../utils/database";
 import { emojisFromBitmask } from "../../../utils/bitmask";
 import { DOMAINS } from "../../../utils/constants";
 import { EMOJIS } from "../../../utils/emoji";
@@ -30,10 +30,16 @@ export async function buildUserProfileCard(
       : ":wave:  Hello there!",
   );
 
-  if (profile.inGameName.length > 0)
-    embed.setDescription(
-      `:identification_card:  Wilds Hunter ID \`${profile.inGameName}\``,
+  const description: string[] = [];
+
+  if (profile.inGameId.length > 0)
+    description.push(
+      `:identification_card:  Wilds Hunter ID \`${profile.inGameId}\``,
     );
+  if (profile.gameBaseScore > 0)
+    description.push(prettifyGameRank(profile.gameBaseScore));
+
+  if (description.length > 0) embed.setDescription(description.join("\n"));
 
   const header: string[] = [displayName];
 
@@ -115,11 +121,15 @@ export function buildMainEditorRow(): ActionRowBuilder<ButtonBuilder>[] {
   const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId("card:open:info")
-      .setLabel("Customize")
+      .setLabel("Personalize")
       .setStyle(ButtonStyle.Primary),
     new ButtonBuilder()
-      .setCustomId("card:open:generation")
-      .setLabel("Set Generation joined")
+      .setCustomId("card:open:RANK")
+      .setLabel("Rank")
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId("card:open:GENERATION")
+      .setLabel("Generation")
       .setStyle(ButtonStyle.Secondary),
   );
 

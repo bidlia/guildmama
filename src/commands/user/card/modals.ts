@@ -53,7 +53,7 @@ export async function showInfoModal(interaction: ButtonInteraction) {
     .setStyle(TextInputStyle.Short)
     .setMaxLength(8)
     .setRequired(false)
-    .setValue(profile?.inGameName ?? "");
+    .setValue(profile?.inGameId ?? "");
 
   const idLabel = new LabelBuilder()
     .setLabel("Wilds Hunter ID")
@@ -104,7 +104,7 @@ export async function handleCardModals(
   const profile = await upsertProfile(interaction.user.id, {
     customComment: comment,
     customTitle: title,
-    inGameName: id,
+    inGameId: id,
     ...colourUpdate,
   });
 

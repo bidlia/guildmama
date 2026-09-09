@@ -15,9 +15,13 @@ model Profile {
   customColour        Int       @default(0)
 
   authorityLevel      Int       @default(1)
-  inGameName          String    @default("")
   customTitle         String    @default("Ace Hunter")
   customComment       String    @default("")
+
+  inGameName          String    @default("")
+  inGameId            String    @default("")
+  gameBaseScore       Int       @default(0)
+  gameExpacScore      Int       @default(0)
   generation          Int       @default(0)
 
   weaponsBitmask      Int       @default(0)
