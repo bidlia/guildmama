@@ -9,13 +9,16 @@ function parseLeaf(base: string, usageLeaf: Usage): string[] {
 
   if (usageLeaf.children) {
     if ("options" in usageLeaf.children[0]) {
-      return [
-        parseCommandString(
-          base,
-          usageLeaf.description ? usageLeaf.description : "",
-        ),
-        ...parseOptions(base, usageLeaf.children as OptionChains[]),
-      ];
+      if (usageLeaf.description) {
+        return [
+          parseCommandString(
+            base,
+            usageLeaf.description ? usageLeaf.description : "",
+          ),
+          ...parseOptions(base, usageLeaf.children as OptionChains[]),
+        ];
+      }
+      return parseOptions(base, usageLeaf.children as OptionChains[]);
     } else {
       const subLeafs: string[] = [];
       usageLeaf.children.forEach((leaf) =>
