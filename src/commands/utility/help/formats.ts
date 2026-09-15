@@ -1,13 +1,13 @@
 import { ChatInputCommandInteraction, Client, EmbedBuilder } from "discord.js";
 import { RELEASE, VERSION } from "../../../utils/constants";
-import { Command } from "../../../types/command";
-import { parseUsageStrings } from "./usage";
+import { Command } from "../../../utils/command/core";
 import { capitalize } from "../../../utils/format";
 import { getColourPreference } from "../../../utils/database";
+import { renderUsageLines } from "../../../utils/command/usage";
 
 export function buildGeneralHelpEmbed(client: Client<true>): EmbedBuilder {
   const commandList = client.commands
-    .map((cmd) => `\`/${cmd.data.name}\` *${cmd.data.description}*`)
+    .map((cmd) => `\`/${cmd.name}\` *${cmd.description}*`)
     .join("\n");
   const versionHex = `#${RELEASE.TINT.toString(16).toUpperCase().padStart(6, "0")}`;
 
@@ -32,16 +32,23 @@ export async function buildCommandHelpEmbed(
   command: Command,
 ): Promise<EmbedBuilder> {
   const embed = new EmbedBuilder()
-    .setAuthor({ name: `${capitalize(command.category!)} command` })
-    .setTitle(`\`/${command.data.name}\``)
-    .setDescription(`*${command.data.description}*`)
+    .setAuthor({ name: `${capitalize(command.category)} command` })
+    .setTitle(`\`/${command.name}\``)
+    .setDescription(`*${command.description}*`)
     .setColor(await getColourPreference(interaction.user.id));
 
-  if (command.usage.children)
+  const lines = renderUsageLines(command.getUsageTree());
+  const bareSyntax = `/${command.name}`;
+  const hasRealUsage = lines.some((l) => l.syntax !== bareSyntax);
+
+  if (hasRealUsage) {
     embed.addFields({
       name: "Usage",
-      value: parseUsageStrings(command).join("\n"),
+      value: lines
+        .map((lin) => `\`${lin.syntax}\` *${lin.explanation}*`)
+        .join("\n"),
     });
-  else embed.setDescription(command.data.description);
+  }
+
   return embed;
 }

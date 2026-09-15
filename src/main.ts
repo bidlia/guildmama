@@ -9,17 +9,15 @@ import {
   InteractionReplyOptions,
   MessageFlags,
 } from "discord.js";
-import { discoverCommands } from "./utils/discover-commands";
-import { VERSION } from "./utils/constants";
-import { handleShutdown } from "./handlers/shutdown";
-import { handleChatInput } from "./handlers/chat-input";
+import { ShutdownManager } from "./handlers/shutdown";
+import { log, loggableUser, LogModes } from "./utils/log";
+import { CLIENT_TOKEN, IS_DEV_BUILD, VERSION } from "./utils/constants";
 import { handleAutocomplete } from "./handlers/autocomplete";
-import { fetchApplicationEmojis } from "./utils/emoji";
 import { handleComponent } from "./handlers/component";
+import { handleChatInput } from "./handlers/chat-input";
+import { discoverCommands } from "./utils/discover-commands";
 
-let isFinishedStartup = false;
-
-const client = new Client({
+export const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
@@ -28,79 +26,73 @@ const client = new Client({
   ],
 });
 client.commands = new Collection();
-for (const command of discoverCommands(__dirname)) {
-  client.commands.set(command.data.name, command);
-}
+for (const command of discoverCommands(__dirname))
+  client.commands.set(command.name, command);
 
-client.once(Events.ClientReady, async (client: Client<true>) => {
-  console.log("[Boot]: Fetching application emojis...");
-  await fetchApplicationEmojis(client);
-  console.log("[Boot]: Emojis collected.");
+export const manager = new ShutdownManager(client);
 
-  console.log(
-    `[Boot]: Awake and ready on client ${client.user.username}! (${client.user.id})`,
-  );
+client.once(Events.ClientReady, async (client) => {
+  log(LogModes.BOOT, `Awake and ready on client ${loggableUser(client.user)}!`);
 
-  isFinishedStartup = true;
+  client.user.setActivity(`Version ${VERSION}  ${IS_DEV_BUILD ? "🪲" : "📚"}`, {
+    type: ActivityType.Playing,
+  });
 
-  client.user.setActivity(
-    `Version ${VERSION}  ${process.env.IS_DEVELOPMENT_BUILD ? "🪲" : "📚"}`,
-    {
-      type: ActivityType.Playing,
-    },
-  );
-});
-
-client.on(Events.InteractionCreate, async (interaction: Interaction) => {
-  if (!isFinishedStartup) {
-    if (interaction.isRepliable())
-      return interaction.reply({
-        content:
-          "Sorry, but I'm still waking up. Give me a few moments to shake off the rust!  ☁️",
-      });
-    return console.error(
-      "[Err]: Received interaction while starting up. Discarding.",
-    );
-  } else if (interaction.isChatInputCommand()) {
-    try {
-      await handleChatInput(interaction);
-    } catch (err) {
-      console.error(
-        `[Err]: There was an error while executing the command '${interaction.commandName}'; ${err}`,
-      );
-
-      const apologyMessage: InteractionReplyOptions = {
-        content: "There was an error while executing this command!",
-        flags: MessageFlags.Ephemeral,
-      };
+  client.on(Events.InteractionCreate, async (interaction: Interaction) => {
+    if (interaction.isChatInputCommand()) {
+      try {
+        manager.guardNecro();
+      } catch (err) {
+        if (interaction.isRepliable())
+          interaction.reply({
+            content:
+              "Sorry, but I'm shutting down. Hold your requests for a moment please!  ☁️",
+            flags: MessageFlags.Ephemeral,
+          });
+        return log(
+          LogModes.ERR,
+          `Discarded interaction from ${loggableUser(interaction.user)}: ${err}`,
+        );
+      }
 
       try {
-        if (interaction.replied || interaction.deferred) {
-          await interaction.followUp(apologyMessage);
-        } else {
-          await interaction.reply(apologyMessage);
-        }
+        await handleChatInput(interaction);
       } catch (err) {
-        console.error("[Err]: Failed to forward error notice to user: ", err);
+        log(
+          LogModes.ERR,
+          `There was an error while executing the command ${interaction.commandName}: ${err}`,
+        );
+
+        const apologyMessage: InteractionReplyOptions = {
+          content: "There was an error while executing this command!",
+          flags: MessageFlags.Ephemeral,
+        };
+
+        try {
+          if (interaction.replied || interaction.deferred) {
+            await interaction.followUp(apologyMessage);
+          } else {
+            await interaction.reply(apologyMessage);
+          }
+        } catch (err) {
+          log(
+            LogModes.ERR,
+            `Failed to forward error notice to user ${loggableUser(interaction.user)}`,
+          );
+        }
       }
+    } else if (interaction.isAutocomplete())
+      try {
+        await handleAutocomplete(interaction);
+      } catch (err) {}
+    else if (
+      interaction.isButton() ||
+      interaction.isModalSubmit() ||
+      interaction.isStringSelectMenu()
+    ) {
+      handleComponent(interaction);
     }
-  } else if (interaction.isAutocomplete()) {
-    try {
-      await handleAutocomplete(interaction);
-    } catch (err) {
-      console.error(
-        `[Err]: Autocomplete failed for the command '${interaction.commandName}'`,
-        err,
-      );
-    }
-  } else if (
-    interaction.isButton() ||
-    interaction.isModalSubmit() ||
-    interaction.isStringSelectMenu()
-  )
-    handleComponent(interaction);
+  });
 });
 
-client.login(process.env.CLIENT_TOKEN);
-
-handleShutdown(client);
+client.login(CLIENT_TOKEN);
