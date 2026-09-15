@@ -7,45 +7,66 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model Guild {
+  id                  String    @id
+
+  users               GuildProfile[]
+  roles               Role[]
+}
+
+model Role {
+  id                  String    @id
+  key                 String
+
+  guildId             String
+  guild               Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, key])
+}
+
+model GuildProfile {
+  id                  String    @id @default(cuid())
+
+  authority           Int       @default(1)
+  
+  guildId             String
+  guild               Guild     @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  userId              String
+  user                Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, userId])
+}
+
 model Profile {
-  id                  String    @id // discord user id
+  id                  String    @id
   createdAt           DateTime  @default(now())
 
   timezone            String    @default("")
-  customColour        Int       @default(0)
 
-  authorityLevel      Int       @default(1)
+  generationJoined    Int       @default(0)
+
+  weaponsMask         Int       @default(0)
+  platformsMask       Int       @default(0)
+  gamesMask           Int       @default(0)
+
   customTitle         String    @default("Ace Hunter")
   customComment       String    @default("")
+  customColour        Int       @default(0)
 
-  inGameName          String    @default("")
-  inGameId            String    @default("")
-  gameBaseScore       Int       @default(0)
-  gameExpacScore      Int       @default(0)
-  generation          Int       @default(0)
-
-  weaponsBitmask      Int       @default(0)
-  platformsBitmask    Int       @default(0)
-  gamesBitmask        Int       @default(0)
-
-  guildId             String 
-  guild               Guild     @relation(fields: [guildId], references: [id])
+  accounts            InGameAccount[]
+  guilds              GuildProfile[]
 }
 
-model Guild {
-  id                  String    @id // discord server id
-  createdAt           DateTime  @default(now())
-  
-  // tracking of managed roles
-  appRoles            AppRole[]
-  defaultAuthority    Int       @default(1)
+model InGameAccount {
+  id                  String    @id
+  name                String
+  baseScore           Int       @default(0)
+  expacScore          Int       @default(0)
+  gameId              Int       
+  platformId          Int       @default(0)
 
-  members             Profile[]
+  profileId           String
+  profile             Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
 }
 
-model AppRole {
-  id                  Int       @id       @default(autoincrement())
-  roleId              String
-  guildId             String
-  guild               Guild     @relation(fields: [guildId], references: [id], onDelete: Cascade)
-}

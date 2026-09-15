@@ -1,10 +1,12 @@
 import { execSync } from "node:child_process";
+import { generateReleaseTint } from "./colour";
 import { version } from "../../package.json";
-import { generateReleaseTint } from "./release-tint";
 
 export const VERSION = version;
+export const CLIENT_TOKEN = deriveEnvConstants("CLIENT_TOKEN");
 export const GUILD_ID = deriveEnvConstants("GUILD_ID");
 export const DEVELOPER_ID = deriveEnvConstants("DEVELOPER_ID");
+export const IS_DEV_BUILD = deriveEnvConstants("IS_DEVELOPMENT_BUILD");
 export const APPLICATION_ID = deriveEnvConstants("APPLICATION_ID");
 
 const commitHash = (() => {

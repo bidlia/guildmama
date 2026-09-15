@@ -1,19 +1,11 @@
-import {
-  ChatInputCommandInteraction,
-  MessageFlags,
-  SlashCommandBuilder,
-} from "discord.js";
-import { Command } from "../../types/command";
-import { EmbedBuilder } from "@discordjs/builders";
+import { EmbedBuilder, MessageFlags } from "discord.js";
+import { Command } from "../../utils/command/core";
 
-const command: Command = {
-  usage: {
-    name: "ping",
-  },
-  data: new SlashCommandBuilder()
-    .setName("ping")
-    .setDescription("Check my latency and API ping"),
-  async execute(interaction: ChatInputCommandInteraction) {
+const command = new Command()
+  .setName("ping")
+  .setDescription("Check my latency and API ping")
+  .describe("Check my latency and API ping")
+  .onExecute(async (interaction) => {
     const deferredReply = await interaction.deferReply({
       withResponse: true,
       flags: MessageFlags.Ephemeral,
@@ -36,8 +28,7 @@ const command: Command = {
           }),
       ],
     });
-  },
-};
+  });
 
 export default command;
 
