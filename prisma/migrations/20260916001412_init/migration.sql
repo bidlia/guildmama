@@ -1,6 +1,8 @@
 -- CreateTable
 CREATE TABLE "Guild" (
-    "id" TEXT NOT NULL PRIMARY KEY
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "leftAt" DATETIME
 );
 
 -- CreateTable
@@ -14,15 +16,17 @@ CREATE TABLE "Role" (
 -- CreateTable
 CREATE TABLE "GuildProfile" (
     "id" TEXT NOT NULL PRIMARY KEY,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "leftAt" DATETIME,
     "authority" INTEGER NOT NULL DEFAULT 1,
     "guildId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     CONSTRAINT "GuildProfile_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "GuildProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "Profile" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT "GuildProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "UserProfile" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
-CREATE TABLE "Profile" (
+CREATE TABLE "UserProfile" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "timezone" TEXT NOT NULL DEFAULT '',
@@ -38,13 +42,14 @@ CREATE TABLE "Profile" (
 -- CreateTable
 CREATE TABLE "InGameAccount" (
     "id" TEXT NOT NULL PRIMARY KEY,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "name" TEXT NOT NULL,
-    "gameBaseScore" INTEGER NOT NULL DEFAULT 0,
-    "gameExpacScore" INTEGER NOT NULL DEFAULT 0,
-    "gameId" INTEGER NOT NULL,
-    "platformId" INTEGER NOT NULL DEFAULT 0,
-    "profileId" TEXT NOT NULL,
-    CONSTRAINT "InGameAccount_profileId_fkey" FOREIGN KEY ("profileId") REFERENCES "Profile" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "gameKey" TEXT NOT NULL,
+    "platformKey" TEXT NOT NULL DEFAULT '',
+    "baseScore" INTEGER NOT NULL DEFAULT 0,
+    "expacScore" INTEGER NOT NULL DEFAULT 0,
+    "userId" TEXT NOT NULL,
+    CONSTRAINT "InGameAccount_userId_fkey" FOREIGN KEY ("userId") REFERENCES "UserProfile" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateIndex

@@ -2,8 +2,8 @@ import { ChatInputCommandInteraction, Client, EmbedBuilder } from "discord.js";
 import { RELEASE, VERSION } from "../../../utils/constants";
 import { Command } from "../../../utils/command/core";
 import { capitalize } from "../../../utils/format";
-import { getColourPreference } from "../../../utils/database";
 import { renderUsageLines } from "../../../utils/command/usage";
+import { getColourPreference } from "../../../utils/colour";
 
 export function buildGeneralHelpEmbed(client: Client<true>): EmbedBuilder {
   const commandList = client.commands

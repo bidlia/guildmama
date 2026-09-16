@@ -1,4 +1,4 @@
-import { User } from "discord.js";
+import { Guild, GuildMember, PartialGuildMember, User } from "discord.js";
 
 export enum LogModes {
   BOOT = "\x1b[32mBoot\x1b[0m",
@@ -14,6 +14,12 @@ export function log(mode: LogModes, content: string) {
   console.log(`[${mode}]: ${content}`);
 }
 
-export function loggableUser(user: User) {
-  return `\x1b[33m${user.username}\x1b[0m [\x1b[36m${user.id}\x1b[0m]`;
+export function loggable(
+  offering: User | Guild | GuildMember | PartialGuildMember,
+) {
+  if (offering instanceof Guild)
+    return `\x1b[32m${offering.name}\x1b[0m [\x1b[36m${offering.id}\x1b[0m]`;
+  if (offering instanceof User)
+    return `\x1b[33m${offering.username}\x1b[0m [\x1b[36m${offering.id}\x1b[0m]`;
+  return `\x1b[33m${offering.user.username}\x1b[0m [\x1b[36m${offering.user.id}\x1b[0m]`;
 }
