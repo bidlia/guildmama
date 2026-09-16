@@ -1,14 +1,16 @@
 datasource db {
-  provider    = "sqlite"
-  url         = env("DATABASE_URL")
+  provider            = "sqlite"
+  url                 = env("DATABASE_URL")
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider            = "prisma-client-js"
 }
 
 model Guild {
   id                  String    @id
+  createdAt           DateTime  @default(now())
+  leftAt              DateTime?
 
   users               GuildProfile[]
   roles               Role[]
@@ -26,6 +28,8 @@ model Role {
 
 model GuildProfile {
   id                  String    @id @default(cuid())
+  createdAt           DateTime  @default(now())
+  leftAt              DateTime?
 
   authority           Int       @default(1)
   
@@ -33,17 +37,16 @@ model GuildProfile {
   guild               Guild     @relation(fields: [guildId], references: [id], onDelete: Cascade)
 
   userId              String
-  user                Profile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([guildId, userId])
 }
 
-model Profile {
+model UserProfile {
   id                  String    @id
   createdAt           DateTime  @default(now())
 
   timezone            String    @default("")
-
   generationJoined    Int       @default(0)
 
   weaponsMask         Int       @default(0)
@@ -60,13 +63,16 @@ model Profile {
 
 model InGameAccount {
   id                  String    @id
+  createdAt           DateTime  @default(now())
+
   name                String
+  gameKey             String
+  
+  platformKey         String    @default("")
   baseScore           Int       @default(0)
   expacScore          Int       @default(0)
-  gameId              Int       
-  platformId          Int       @default(0)
 
-  profileId           String
-  profile             Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  userId              String
+  user                UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 

@@ -1,13 +1,13 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { client } from "../main";
-import { log, loggableUser, LogModes } from "../utils/log";
+import { log, loggable, LogModes } from "../utils/log";
 
 export async function handleChatInput(
   interaction: ChatInputCommandInteraction,
 ): Promise<void> {
   log(
     LogModes.APP,
-    `${loggableUser(interaction.user)} used /${interaction.commandName}`,
+    `${loggable(interaction.user)} used /${interaction.commandName}`,
   );
 
   const command = client.commands.get(interaction.commandName);
