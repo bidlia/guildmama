@@ -3,13 +3,13 @@ import { createDeferral, Deferral } from "../utils/deferred";
 import { Client } from "discord.js";
 import { log, LogModes } from "../utils/log";
 
-export class ShutdownManager {
+class ShutdownManager {
   private _isRunning = true;
   private _tickets = new Map<string, Deferral>();
   private _deferredShutdownNotice = createDeferral();
   private _hardTimeoutMs = 15000;
 
-  constructor(client: Client) {
+  init(client: Client) {
     const handleShutdownEvent = async (signal: string) => {
       if (!this._isRunning) return;
       try {
@@ -45,9 +45,7 @@ export class ShutdownManager {
 
   guardNecro() {
     if (!this._isRunning)
-      throw new Error(
-        "Client is shutting down; Not accepting any new requests.",
-      );
+      throw new Error("Client is shutting down; Not accepting any new requests.");
   }
 
   openTicket(): { close: () => void; shutdownNotice: Promise<void> } {
@@ -68,14 +66,12 @@ export class ShutdownManager {
     this._isRunning = false;
     this._deferredShutdownNotice.resolve();
 
-    const pendingTickets = [...this._tickets.values()].map(
-      (tkt) => tkt.promise,
-    );
+    const pendingTickets = [...this._tickets.values()].map((tkt) => tkt.promise);
     if (pendingTickets.length === 0) return;
 
-    const timeout = new Promise<void>((resolve) =>
-      setTimeout(resolve, this._hardTimeoutMs),
-    );
+    const timeout = new Promise<void>((resolve) => setTimeout(resolve, this._hardTimeoutMs));
     await Promise.race([Promise.all(pendingTickets), timeout]);
   }
 }
+
+export const manager = new ShutdownManager();

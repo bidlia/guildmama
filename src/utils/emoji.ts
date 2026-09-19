@@ -7,6 +7,8 @@ class EmojiCache {
   private _isLoaded = false;
 
   async load(client: Client) {
+    log(LogModes.BOOT, `Fetching application emojis...`);
+
     if (!client.application) {
       throw new Error("Emoji load called before application is available");
     }
@@ -19,16 +21,17 @@ class EmojiCache {
       else log(LogModes.WARN, `No application emoji found matching "${emoji}"`);
     }
 
+    log(LogModes.BOOT, `Cached ${this._cache.size} emojis.`);
     this._isLoaded = true;
   }
 
   get<D extends keyof typeof DOMAINS>(
     domainKey: D,
-    entryKey: keyof (typeof DOMAINS)[D]["entries"],
+    entryKey: keyof (typeof DOMAINS)[D]["entries"]
   ) {
-    const name = (
-      DOMAINS[domainKey].entries as Record<string, { emoji: string }>
-    )[entryKey as string].emoji;
+    const name = (DOMAINS[domainKey].entries as Record<string, { emoji: string }>)[
+      entryKey as string
+    ].emoji;
     return this._cache.get(name);
   }
 

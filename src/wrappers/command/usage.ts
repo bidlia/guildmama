@@ -15,6 +15,7 @@ export interface UsageOption {
 export interface UsagePermutation {
   explanation: string;
   options: UsageOption[];
+  isHidden?: boolean;
 }
 
 export interface UsageLine {
@@ -32,23 +33,18 @@ export function renderUsageLines(node: UsageCommand): UsageLine[] {
 
 function renderNode(node: UsageCommand, prefix: string): UsageLine[] {
   if (node.permutations.length > 0)
-    return node.permutations.map((prm) => renderPermutation(prefix, prm));
+    return node.permutations
+      .filter((prm) => !prm.isHidden)
+      .map((prm) => renderPermutation(prefix, prm));
 
   if (node.children.length > 0)
-    return node.children.flatMap((chd) =>
-      renderNode(chd, `${prefix} ${chd.name}`),
-    );
+    return node.children.flatMap((chd) => renderNode(chd, `${prefix} ${chd.name}`));
 
   return [];
 }
 
-function renderPermutation(
-  prefix: string,
-  permutation: UsagePermutation,
-): UsageLine {
-  const options = permutation.options
-    .map((opt) => renderOption(opt.argument, opt))
-    .join(" ");
+function renderPermutation(prefix: string, permutation: UsagePermutation): UsageLine {
+  const options = permutation.options.map((opt) => renderOption(opt.argument, opt)).join(" ");
   return {
     syntax: [prefix, options].filter(Boolean).join(" "),
     explanation: permutation.explanation,

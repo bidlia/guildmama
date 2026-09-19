@@ -1,18 +1,17 @@
 import { EmbedBuilder, MessageFlags } from "discord.js";
-import { Command } from "../../utils/command/core";
+import { Command } from "../../wrappers/command/core";
 
 const command = new Command()
   .setName("ping")
   .setDescription("Check my latency and API ping")
-  .describe("Check my latency and API ping")
   .onExecute(async (interaction) => {
     const deferredReply = await interaction.deferReply({
       withResponse: true,
       flags: MessageFlags.Ephemeral,
     });
+
     const roundtripLatency =
-      deferredReply.resource?.message?.createdTimestamp! -
-      interaction.createdTimestamp;
+      deferredReply.resource?.message?.createdTimestamp! - interaction.createdTimestamp;
     const websocketLatency = Math.round(interaction.client.ws.ping);
 
     await interaction.editReply({
@@ -20,9 +19,7 @@ const command = new Command()
         new EmbedBuilder()
           .setColor(pingToColour(roundtripLatency))
           .setAuthor({ name: "Pong!" })
-          .setTitle(
-            `Our connection is${pingToHealthMessage(roundtripLatency + websocketLatency)}`,
-          )
+          .setTitle(`Our connection is${pingToHealthMessage(roundtripLatency + websocketLatency)}`)
           .setFooter({
             text: `Roundtrip: ${roundtripLatency} ms  •  Websocket: ${websocketLatency} ms`,
           }),
@@ -43,11 +40,8 @@ function pingToColour(ping: number): number {
 }
 
 function pingToHealthMessage(
-  ping: number,
-):
-  | " great!"
-  | " alright"
-  | "n't great\nSorry, I'm driving through a tunnel  😔" {
+  ping: number
+): " great!" | " alright" | "n't great\nSorry, I'm driving through a tunnel  😔" {
   if (ping <= 250) return " great!";
   else if (ping > 250 && ping <= 600) return " alright";
   return "n't great\nSorry, I'm driving through a tunnel  😔";

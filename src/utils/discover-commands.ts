@@ -1,7 +1,7 @@
 import { existsSync, readdirSync } from "node:fs";
-import { Command } from "./command/core";
 import { log, LogModes } from "./log";
 import { join } from "node:path";
+import { Command } from "../wrappers/command/core";
 
 export function discoverCommands(operatingDir: string): Command[] {
   const commands: Command[] = [];
@@ -17,11 +17,7 @@ export function discoverCommands(operatingDir: string): Command[] {
       withFileTypes: true,
     }))
       if (entry.isFile() && entry.name.endsWith(".js"))
-        verifyCommandAndPush(
-          join(categoryPath, entry.name),
-          category,
-          commands,
-        );
+        verifyCommandAndPush(join(categoryPath, entry.name), category, commands);
       else if (entry.isDirectory()) {
         const probableCommandPath = join(categoryPath, entry.name, "core.js");
         if (existsSync(probableCommandPath))
@@ -35,7 +31,7 @@ export function discoverCommands(operatingDir: string): Command[] {
 function verifyCommandAndPush(
   commandPath: string,
   commandCategory: string,
-  commands: Command[],
+  commands: Command[]
 ): void {
   const commandModule = require(commandPath);
   const command = commandModule.default ?? commandModule;
@@ -43,7 +39,7 @@ function verifyCommandAndPush(
   if (!(command instanceof Command))
     return log(
       LogModes.ERR,
-      `Command at ${commandPath} did not export a Command instance; Found ${typeof command}.`,
+      `Command at ${commandPath} did not export a Command instance; Found ${typeof command}.`
     );
 
   if (!command.category) command.setCategory(commandCategory);
