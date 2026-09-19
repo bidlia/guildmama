@@ -2,7 +2,20 @@
 CREATE TABLE "Guild" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "leftAt" DATETIME
+    "leftAt" DATETIME,
+    "defaultAuthority" INTEGER NOT NULL DEFAULT 1
+);
+
+-- CreateTable
+CREATE TABLE "GuildProfile" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "leftAt" DATETIME,
+    "authority" INTEGER NOT NULL,
+    "guildId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    CONSTRAINT "GuildProfile_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "GuildProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "UserProfile" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -11,18 +24,6 @@ CREATE TABLE "Role" (
     "key" TEXT NOT NULL,
     "guildId" TEXT NOT NULL,
     CONSTRAINT "Role_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild" ("id") ON DELETE CASCADE ON UPDATE CASCADE
-);
-
--- CreateTable
-CREATE TABLE "GuildProfile" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "leftAt" DATETIME,
-    "authority" INTEGER NOT NULL DEFAULT 1,
-    "guildId" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    CONSTRAINT "GuildProfile_guildId_fkey" FOREIGN KEY ("guildId") REFERENCES "Guild" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT "GuildProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "UserProfile" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -53,7 +54,7 @@ CREATE TABLE "InGameAccount" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Role_guildId_key_key" ON "Role"("guildId", "key");
+CREATE UNIQUE INDEX "GuildProfile_guildId_userId_key" ON "GuildProfile"("guildId", "userId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "GuildProfile_guildId_userId_key" ON "GuildProfile"("guildId", "userId");
+CREATE UNIQUE INDEX "Role_guildId_key_key" ON "Role"("guildId", "key");

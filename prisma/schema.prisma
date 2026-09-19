@@ -12,8 +12,26 @@ model Guild {
   createdAt           DateTime  @default(now())
   leftAt              DateTime?
 
+  defaultAuthority    Int       @default(1)
+
   users               GuildProfile[]
   roles               Role[]
+}
+
+model GuildProfile {
+  id                  String    @id @default(cuid())
+  createdAt           DateTime  @default(now())
+  leftAt              DateTime?
+
+  authority           Int
+  
+  guildId             String
+  guild               Guild     @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  userId              String
+  user                UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, userId])
 }
 
 model Role {
@@ -26,21 +44,6 @@ model Role {
   @@unique([guildId, key])
 }
 
-model GuildProfile {
-  id                  String    @id @default(cuid())
-  createdAt           DateTime  @default(now())
-  leftAt              DateTime?
-
-  authority           Int       @default(1)
-  
-  guildId             String
-  guild               Guild     @relation(fields: [guildId], references: [id], onDelete: Cascade)
-
-  userId              String
-  user                UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([guildId, userId])
-}
 
 model UserProfile {
   id                  String    @id

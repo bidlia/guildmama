@@ -6,17 +6,15 @@ export enum LogModes {
   WARN = "\x1b[33mWarn\x1b[0m",
   ERR = "\x1b[35mErr\x1b[0m",
   APP = "\x1b[36mApp\x1b[0m",
+  DEP = "\x1b[35mDep\x1b[0m",
 }
 
 export function log(mode: LogModes, content: string) {
-  if (mode == LogModes.ERR)
-    return console.error(`[${LogModes.ERR}]: ${content}`);
+  if (mode == LogModes.ERR) return console.error(`[${LogModes.ERR}]: ${content}`);
   console.log(`[${mode}]: ${content}`);
 }
 
-export function loggable(
-  offering: User | Guild | GuildMember | PartialGuildMember,
-) {
+export function loggable(offering: User | Guild | GuildMember | PartialGuildMember) {
   if (offering instanceof Guild)
     return `\x1b[32m${offering.name}\x1b[0m [\x1b[36m${offering.id}\x1b[0m]`;
   if (offering instanceof User)

@@ -46,9 +46,14 @@ export async function purgeStaleGuilds(olderThan: Date) {
 }
 
 export async function ensureGuildProfile(guildId: string, userId: string) {
+  const guild = (await db.guild.findUnique({
+    where: { id: guildId },
+    select: { defaultAuthority: true },
+  }))!;
+
   return db.guildProfile.upsert({
     where: { guildId_userId: { guildId, userId } },
-    update: { leftAt: null },
-    create: { guildId, userId },
+    update: {},
+    create: { guildId, userId, authority: guild?.defaultAuthority },
   });
 }
