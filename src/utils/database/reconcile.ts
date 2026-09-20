@@ -35,7 +35,7 @@ export async function reconcileGuilds(client: Client<true>) {
     if (created || updated)
       log(
         LogModes.WARN,
-        `Modified Roles for Guild ${guild.name}: ${created} created, ${updated} updated.`
+        `Modified Roles for Guild ${loggable(guild)}: ${created} created, ${updated} updated.`
       );
   }
 
