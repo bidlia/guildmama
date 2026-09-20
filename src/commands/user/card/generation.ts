@@ -11,6 +11,9 @@ export function addGenerationSelector(command: CommandNode<any>) {
       await ensureUser(targetUserId, { generationJoined: Number(draftGen ?? 0) });
       return { page: "base", args: [targetUserId] };
     },
+    onCancel: async (interaction, [targetUserId]) => {
+      return { page: "base", args: [targetUserId] };
+    },
   });
 
   command.addPage("generation", async (interaction, args) => {

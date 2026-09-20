@@ -4,51 +4,55 @@ export const DOMAINS = buildDomains({
     entries: {
       GREAT_SWORD: {
         shorthand: "gs",
-        role: { name: "Great Sword", colour: 0x000000 },
+        role: { name: "🔪 Great Sword", colour: 0x7d2323 },
       },
       LONG_SWORD: {
         shorthand: "ls",
-        role: { name: "Long Sword", colour: 0x000000 },
+        role: { name: "🗡️ Long Sword", colour: 0xa14e0f },
       },
       SWORD_AND_SHIELD: {
         shorthand: "sns",
-        role: { name: "Sword & Shield", colour: 0x000000 },
+        role: { name: "🗡️🛡️ Sword & Shield", colour: 0xc19a03 },
       },
       DUAL_BLADES: {
         shorthand: "db",
-        role: { name: "Dual Blades", colour: 0x000000 },
+        role: { name: "⚔️ Dual Blades", colour: 0xb8e05b },
       },
-      HAMMER: { shorthand: "ham", role: { name: "Hammer", colour: 0x000000 } },
+      HAMMER: { shorthand: "ham", role: { name: "🔨 Hammer", colour: 0x639e29 } },
       HUNTING_HORN: {
         shorthand: "hh",
-        role: { name: "Hunting Horn", colour: 0x000000 },
+        role: { name: "🎺 Hunting Horn", colour: 0x1f8942 },
       },
-      LANCE: { shorthand: "lnc", role: { name: "Lance", colour: 0x000000 } },
+      LANCE: { shorthand: "lnc", role: { name: "🔱 Lance", colour: 0x167c58 } },
       GUNLANCE: {
         shorthand: "gl",
-        role: { name: "Gunlance", colour: 0x000000 },
+        role: { name: "🔫🔱 Gunlance", colour: 0x0b6b6b },
       },
       SWITCH_AXE: {
         shorthand: "sa",
-        role: { name: "Switch Axe", colour: 0x000000 },
+        role: { name: "🔄🪓 Switch Axe", colour: 0x15629c },
       },
       CHARGE_BLADE: {
         shorthand: "cb",
-        role: { name: "Charge Blade", colour: 0x000000 },
+        role: { name: "♻️🗡️ Charge Blade", colour: 0x323d84 },
       },
       INSECT_GLAIVE: {
         shorthand: "ig",
-        role: { name: "Insect Glaive", colour: 0x000000 },
+        role: { name: "🐞🚁 Insect Glaive", colour: 0x66519f },
       },
-      BOW: { shorthand: "bow", role: { name: "Bow", colour: 0x000000 } },
+      BOW: { shorthand: "bow", role: { name: "🏹 Bow", colour: 0x612539 } },
       LIGHT_BOWGUN: {
         shorthand: "lbg",
-        role: { name: "Light Bowgun", colour: 0x000000 },
+        role: { name: "⌐╦ᡁ᠊╾━ Light Bowgun", colour: 0x86639a },
       },
       HEAVY_BOWGUN: {
         shorthand: "hbg",
-        role: { name: "Heavy Bowgun", colour: 0x000000 },
+        role: { name: "ᡕᠵデᡁ᠊╾━ Heavy Bowgun", colour: 0x893a74 },
       },
+      MAGNET_SPIKE: { shorthand: "ms", role: { name: "🧲 Magnet Spike", colour: 0xd6b1be } },
+      TONFA: { shorthand: "tnf", role: { name: "🪃 Tonfa", colour: 0xa1c996 } },
+      ACCEL_AXE: { shorthand: "aa", role: { name: "🪓💨 Accel Axe", colour: 0xe7e0c3 } },
+      PROWLER: { shorthand: "plr", role: { name: "🐱 Prowler", colour: 0xfab886 } },
     },
   },
 
@@ -66,25 +70,25 @@ export const DOMAINS = buildDomains({
   PLATFORMS: {
     hasBitmask: true,
     entries: {
-      STEAM: { shorthand: "steam", role: { name: "Steam", colour: 0x000000 } },
+      STEAM: { shorthand: "steam", role: { name: "Steam", colour: 0x1b2838 } },
       WINDOWS: {
         shorthand: "windows",
-        role: { name: "Windows", colour: 0x000000 },
+        role: { name: "Windows", colour: 0x0078d4 },
       },
       PLAYSTATION: {
         shorthand: "playstation",
-        role: { name: "Playstation", colour: 0x000000 },
+        role: { name: "Playstation", colour: 0x003087 },
       },
-      XBOX: { shorthand: "xbox", role: { name: "XBOX", colour: 0x000000 } },
+      XBOX: { shorthand: "xbox", role: { name: "XBOX", colour: 0x107c10 } },
       SWITCH: {
         shorthand: "switch",
-        role: { name: "Switch", colour: 0x000000 },
+        role: { name: "Switch", colour: 0xe60012 },
       },
       DS: {
         shorthand: "3ds",
         role: {
           name: "3DS",
-          colour: 0x000000,
+          colour: 0xbc181a,
         },
       },
     },
@@ -95,27 +99,27 @@ export const DOMAINS = buildDomains({
     entries: {
       MH3U: {
         shorthand: "mh3u",
-        role: { name: "Monster Hunter 3 Ultimate", colour: 0x000000 },
+        role: { name: "Monster Hunter 3 Ultimate", colour: 0x00a8e8 },
       },
       MH4U: {
         shorthand: "mh4u",
-        role: { name: "Monster Hunter 4 Ultimate", colour: 0x000000 },
+        role: { name: "Monster Hunter 4 Ultimate", colour: 0xf0b028 },
       },
       MHGU: {
         shorthand: "mhgu",
-        role: { name: "Monster Hunter Generations Ultimate", colour: 0x000000 },
+        role: { name: "Monster Hunter Generations Ultimate", colour: 0xed2400 },
       },
       MHWIB: {
         shorthand: "mhwib",
-        role: { name: "Monster Hunter World: Iceborne", colour: 0x000000 },
+        role: { name: "Monster Hunter World: Iceborne", colour: 0xa2d2ff },
       },
       MHRSB: {
         shorthand: "mhrsb",
-        role: { name: "Monster Hunter Rise: Sunbreak", colour: 0x000000 },
+        role: { name: "Monster Hunter Rise: Sunbreak", colour: 0x9b000e },
       },
       MHWSA: {
         shorthand: "mhwsa",
-        role: { name: "Monster Hunter Wilds: Ascendance", colour: 0x000000 },
+        role: { name: "Monster Hunter Wilds: Ascendance", colour: 0xfcd116 },
       },
     },
   },
