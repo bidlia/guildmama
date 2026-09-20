@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { db } from "../../database";
 
 export async function getGuild(guildId: string) {
@@ -56,4 +57,36 @@ export async function ensureGuildProfile(guildId: string, userId: string) {
     update: {},
     create: { guildId, userId, authority: guild?.defaultAuthority },
   });
+}
+
+export async function getGuildProfile(guildId: string, userId: string) {
+  return db.guildProfile.findUnique({
+    where: { guildId_userId: { guildId, userId } },
+    include: { user: true },
+  });
+}
+
+const guildMembersCache = new Map<string, { data: GuildMemberWithAccounts[]; expires: number }>();
+const CACHE_TTL_MS = 10_000;
+
+type GuildMemberWithAccounts = Prisma.UserProfileGetPayload<{
+  include: { accounts: true };
+}>;
+
+export async function getCachedGuildMembers(guildId: string): Promise<GuildMemberWithAccounts[]> {
+  const cached = guildMembersCache.get(guildId);
+  if (cached && cached.expires > Date.now()) return cached.data;
+
+  const members = await db.guildProfile.findMany({
+    where: { guildId },
+    include: { user: { include: { accounts: true } } },
+  });
+  const users = members.map((m) => m.user);
+
+  guildMembersCache.set(guildId, { data: users, expires: Date.now() + CACHE_TTL_MS });
+  return users;
+}
+
+export function invalidateGuildMembersCache(userId: string) {
+  guildMembersCache.delete(userId);
 }

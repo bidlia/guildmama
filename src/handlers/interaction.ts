@@ -2,17 +2,10 @@ import { Interaction, InteractionReplyOptions, MessageFlags } from "discord.js";
 import { log, loggable, LogModes } from "../utils/log";
 import { handleChatInput } from "./chat-input";
 import { handleAutocomplete } from "./autocomplete";
-import { ensureGuildProfile } from "../utils/database/guild";
-import { ensureUser } from "../utils/database/user";
 import { dispatchComponent } from "../wrappers/components/registry";
 import { manager } from "./shutdown";
 
 export async function handleInteraction(interaction: Interaction) {
-  if (interaction.guildId) {
-    await ensureUser(interaction.user.id);
-    await ensureGuildProfile(interaction.guildId, interaction.user.id);
-  }
-
   if (interaction.isChatInputCommand()) {
     try {
       manager.guardNecro();

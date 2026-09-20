@@ -75,7 +75,7 @@ export const DOMAINS = buildDomains({
         shorthand: "playstation",
         role: { name: "Playstation", colour: 0x000000 },
       },
-      XBOX: { shorthand: "xbox", role: { name: "XBox", colour: 0x000000 } },
+      XBOX: { shorthand: "xbox", role: { name: "XBOX", colour: 0x000000 } },
       SWITCH: {
         shorthand: "switch",
         role: { name: "Switch", colour: 0x000000 },

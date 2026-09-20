@@ -1,6 +1,7 @@
 import { ComponentDefinition, ComponentInteraction } from "./types";
 import { log, LogModes } from "../../utils/log";
 import { manager } from "../../handlers/shutdown";
+import { MessageFlags } from "discord.js";
 
 const registry = new Map<string, ComponentDefinition<any>>();
 
@@ -20,7 +21,10 @@ export async function dispatchComponent(interaction: ComponentInteraction) {
   if (def.restrictToInvoker) {
     const invokerId = interaction.message?.interactionMetadata?.user.id;
     if (invokerId && interaction.user.id !== invokerId) {
-      await interaction.reply({ content: "This isn't for you, silly!", ephemeral: true });
+      await interaction.reply({
+        content: "This isn't for you, silly!",
+        flags: MessageFlags.Ephemeral,
+      });
       return;
     }
   }
@@ -31,7 +35,7 @@ export async function dispatchComponent(interaction: ComponentInteraction) {
     await interaction
       .reply({
         content: "Sorry, but I'm shutting down. Hold your requests for a moment please!  ☁️",
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       })
       .catch(() => {});
     return;

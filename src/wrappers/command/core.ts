@@ -6,6 +6,7 @@ import {
   ButtonStyle,
   ChatInputCommandInteraction,
   LabelBuilder,
+  MessageFlags,
   ModalBuilder,
   ModalSubmitInteraction,
   SlashCommandBuilder,
@@ -135,30 +136,44 @@ abstract class OptionHost<TBuilder extends Builder> {
     return built;
   }
 
-  describe(explanation: string, ...argumentNames: string[]) {
-    this._permutations.push({ ...this.buildDescription(explanation, argumentNames) });
+  describe(explanation: string): this;
+  describe(explanation: string, required: string[]): this;
+  describe(explanation: string, required: string[], optional: string[]): this;
+  describe(explanation: string, required?: string[], optional?: string[]): this {
+    this._permutations.push(this.buildPermutation(explanation, required ?? [], optional ?? []));
     return this;
   }
 
-  legalize(...argumentNames: string[]) {
+  legalize(): this;
+  legalize(required: string[]): this;
+  legalize(required: string[], optional: string[]): this;
+  legalize(required?: string[], optional?: string[]): this {
     this._permutations.push({
-      ...this.buildDescription("", argumentNames),
+      ...this.buildPermutation("", required ?? [], optional ?? []),
       isHidden: true,
     });
     return this;
   }
+  private buildPermutation(
+    explanation: string,
+    requiredNames: string[],
+    optionalNames: string[]
+  ): UsagePermutation {
+    return {
+      explanation,
+      required: requiredNames.map((name) => this.findOption(name)),
+      optional: optionalNames.map((name) => this.findOption(name)),
+    };
+  }
 
-  private buildDescription(explanation: string, argumentNames: string[]): UsagePermutation {
-    const options = argumentNames.map((name) => {
-      const found = this._capturedOptions.find((opt) => opt.argument === name);
-      if (!found) {
-        throw new Error(
-          `describe()/describeHidden(): no option with arg "${name}" has been added yet — call add<Type>Option first`
-        );
-      }
-      return found;
-    });
-    return { explanation, options };
+  private findOption(name: string): UsageOption {
+    const found = this._capturedOptions.find((opt) => opt.argument === name);
+    if (!found) {
+      throw new Error(
+        `describe()/legalize(): no option with arg "${name}" has been added yet — call add<Type>Option first`
+      );
+    }
+    return found;
   }
 
   protected async runValidated(
@@ -170,9 +185,9 @@ abstract class OptionHost<TBuilder extends Builder> {
       const lines = renderUsageLines(usage);
       const body =
         lines.length > 0
-          ? `That combination of options isn't valid! Try:\n${lines.map((l) => l.syntax).join("\n")}`
+          ? `That combination of options isn't valid! Try:\n${lines.map((l) => `\`${l.syntax}\``).join("\n")}`
           : `That combination of options isn't valid!`;
-      await interaction.reply({ content: body, ephemeral: true });
+      await interaction.reply({ content: body, flags: MessageFlags.Ephemeral });
       return;
     }
     await handler(interaction);
@@ -186,8 +201,12 @@ abstract class OptionHost<TBuilder extends Builder> {
         .map((opt) => opt.argument)
     );
     return this._permutations.some((prm) => {
-      const required = new Set(prm.options.map((opt) => opt.argument));
-      return required.size === present.size && [...required].every((arg) => present.has(arg));
+      const requiredSet = new Set(prm.required.map((o) => o.argument));
+      const allowedSet = new Set([...prm.required, ...prm.optional].map((o) => o.argument));
+      return (
+        [...requiredSet].every((arg) => present.has(arg)) &&
+        [...present].every((arg) => allowedSet.has(arg))
+      );
     });
   }
 }

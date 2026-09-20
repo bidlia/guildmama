@@ -6,6 +6,7 @@ import { ensureUser } from "./user";
 export async function getAccount(accountId: string) {
   return db.inGameAccount.findUnique({
     where: { id: accountId },
+    include: { user: true },
   });
 }
 
@@ -15,27 +16,26 @@ export async function getAccountsForUser(userId: string) {
   });
 }
 
-export async function ensureAccount(
-  accountId: string,
-  userId: string,
-  data: AccountData,
-) {
-  if (!isValidGameKey(data.gameKey)) {
-    throw new Error(
-      `Invalid gameKey "${data.gameKey}" — no matching GAMES entry`,
-    );
+export async function createAccount(userId: string, data: AccountCreateData) {
+  if (!isValidGameKey(data.gameKey as string)) {
+    throw new Error(`Invalid gameKey "${data.gameKey}" — no matching GAMES entry`);
   }
-  if (data.platformKey !== undefined && !isValidPlatformKey(data.platformKey)) {
-    throw new Error(
-      `Invalid platformKey "${data.platformKey}" — no matching PLATFORMS entry`,
-    );
+  if (data.platformKey !== undefined && !isValidPlatformKey(data.platformKey as string)) {
+    throw new Error(`Invalid platformKey "${data.platformKey}" — no matching PLATFORMS entry`);
   }
 
-  return db.inGameAccount.upsert({
-    where: { id: accountId },
-    update: data,
-    create: { id: accountId, userId, ...data },
-  });
+  return db.inGameAccount.create({ data: { userId, ...data } });
+}
+
+export async function updateAccount(accountId: string, data: AccountUpdateData) {
+  if (data.gameKey !== undefined && !isValidGameKey(data.gameKey as string)) {
+    throw new Error(`Invalid gameKey "${data.gameKey}" — no matching GAMES entry`);
+  }
+  if (data.platformKey !== undefined && !isValidPlatformKey(data.platformKey as string)) {
+    throw new Error(`Invalid platformKey "${data.platformKey}" — no matching PLATFORMS entry`);
+  }
+
+  return db.inGameAccount.update({ where: { id: accountId }, data });
 }
 
 export async function transferAccount(accountId: string, newUserId: string) {
@@ -67,7 +67,5 @@ function isValidPlatformKey(key: string): boolean {
   return key === "" || key in DOMAINS.PLATFORMS.entries;
 }
 
-type AccountData = Omit<
-  Prisma.InGameAccountUncheckedCreateInput,
-  "id" | "userId"
->;
+type AccountCreateData = Omit<Prisma.InGameAccountUncheckedCreateInput, "id" | "userId">;
+type AccountUpdateData = Omit<Prisma.InGameAccountUncheckedUpdateInput, "id" | "userId">;

@@ -46,6 +46,12 @@ class EmojiCache {
 
 export const emojiCache = new EmojiCache();
 
+export function emojisFromMask(domainKey: keyof typeof DOMAINS, domain: DomainDef, mask: number) {
+  return Object.entries(domain.entries)
+    .filter(([, entry]) => entry.index !== undefined && (mask & (1 << entry.index)) !== 0)
+    .map(([key]) => emojiCache.get(domainKey, key as never)?.toString() ?? key);
+}
+
 function allEmojiNames(domains: Record<string, DomainDef>) {
   const result: EmojiRef[] = [];
 
