@@ -7,7 +7,7 @@ if (!process.env.APPLICATION_ID)
 
 const commands = discoverCommands(__dirname).map((cmd) => cmd.toJSON());
 const rest = new REST().setToken(process.env.CLIENT_TOKEN!);
-const isDevBuild = !!process.env.IS_DEVELOPMENT_BUILD;
+const isDevBuild = process.env.IS_DEVELOPMENT_BUILD == "true";
 const deploymentScope = isDevBuild ? "DEV" : "GLOBAL";
 
 (async () => {
