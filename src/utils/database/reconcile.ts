@@ -28,7 +28,16 @@ export async function reconcileGuilds(client: Client<true>) {
   const actualGuildIds = new Set(client.guilds.cache.keys());
   const newlyJoined = [...actualGuildIds].filter((id) => !trackedGuildIds.has(id));
 
-  for (const guild of client.guilds.cache.values()) await ensureGuild(guild.id);
+  for (const guild of client.guilds.cache.values()) {
+    await ensureGuild(guild.id);
+
+    const { created, updated } = await ensureGuildRoles(guild);
+    if (created || updated)
+      log(
+        LogModes.WARN,
+        `Modified Roles for Guild ${guild.name}: ${created} created, ${updated} updated.`
+      );
+  }
 
   for (const guildId of newlyJoined) {
     const guild = client.guilds.cache.get(guildId)!;

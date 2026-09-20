@@ -7,7 +7,6 @@ import { db } from "../../../database";
 import { buildAccountList, buildMemberCard } from "./formats";
 import { addGenerationSelector } from "./generation";
 import { attachPersonalizeModal } from "./personalize";
-import { getAccountsForUser } from "../../../utils/database/account";
 
 const command: Command = new Command()
   .setName("card")

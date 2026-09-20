@@ -1,4 +1,3 @@
-import { UserProfile } from "@prisma/client";
 import { CommandNode } from "../../../wrappers/command/core";
 import { DomainDef } from "../../../utils/domain";
 import { ActionResult, PageRenderer } from "../../../wrappers/components/types";
@@ -7,10 +6,7 @@ import { ensureUser, getUser } from "../../../utils/database/user";
 import { emojiCache } from "../../../utils/emoji";
 import { ButtonBuilder, ButtonStyle } from "discord.js";
 import { buttonRows } from "../../../wrappers/components/layout";
-
-function maskFieldFor(domainKey: string): keyof UserProfile {
-  return `${domainKey.toLowerCase()}Mask` as keyof UserProfile;
-}
+import { maskFieldFor, syncMemberRoles } from "../../../utils/role";
 
 export function wireMaskGrid(
   node: CommandNode<any>,
@@ -25,6 +21,13 @@ export function wireMaskGrid(
   const confirmRow = confirmPrompt(node, pageName, {
     onConfirm: async (interaction, [targetUserId, draftMaskStr]): Promise<ActionResult> => {
       await ensureUser(targetUserId, { [maskField]: Number(draftMaskStr) });
+
+      if (interaction.guildId) {
+        const member = await interaction.guild?.members.fetch(targetUserId).catch(() => null);
+        const profile = await getUser(targetUserId);
+        if (member && profile) await syncMemberRoles(member, profile);
+      }
+
       return { page: backPage, args: [targetUserId] };
     },
     onCancel: async (interaction, [targetUserId]): Promise<ActionResult> => {
