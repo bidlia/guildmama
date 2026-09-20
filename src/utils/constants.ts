@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 
 export const VERSION = version;
 export const CLIENT_TOKEN = deriveEnvConstants("CLIENT_TOKEN") as string;
-export const IS_DEV_BUILD = deriveEnvConstants("IS_DEVELOPMENT_BUILD") as boolean;
+export const IS_DEV_BUILD = (deriveEnvConstants("IS_DEVELOPMENT_BUILD") as string) == "true";
 export const GUILD_ID = IS_DEV_BUILD ? (deriveEnvConstants("GUILD_ID") as string) : false;
 export const DEVELOPER_ID = deriveEnvConstants("DEVELOPER_ID") as string;
 export const APPLICATION_ID = deriveEnvConstants("APPLICATION_ID") as string;

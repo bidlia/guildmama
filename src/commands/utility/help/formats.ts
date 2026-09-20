@@ -18,10 +18,9 @@ export function buildGeneralHelpEmbed(client: Client<true>, command: Command) {
       value: [...client.commands.values()]
         .map((cmd) => `\`/${cmd.name}\` *${cmd.description}*`)
         .join("\n")
-        .concat(`\n\nUse \`/help with:<command>\` for more info on a given command!`),
-    })
-    .setFooter({
-      text: `Version ${VERSION}  •  ${IS_DEV_BUILD ? "Development build" : "Public release"}  •  Build tint *${versionHex}*`,
+        .concat(
+          `\n\nUse \`/help with:<command>\` for more info on a given command!\n\nVersion ${VERSION}  •  ${IS_DEV_BUILD ? "Development build" : "Public release"}  •  Build tint *${versionHex}*`
+        ),
     });
 }
 
