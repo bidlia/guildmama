@@ -16,7 +16,8 @@
   "scripts": {
     "build": "echo 'Building...' && rm -rf dist && tsc --sourceMap false && echo 'Built.'",
     "start": "echo 'Starting...' && node --env-file=.env .",
-    "deploy": "node --env-file=.env dist/deploy-commands.js"
+    "deploy": "node --env-file=.env dist/deploy-commands.js",
+    "clean": "node --env-file=.env dist/clear-commands.js"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
