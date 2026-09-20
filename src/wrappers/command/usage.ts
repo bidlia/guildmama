@@ -14,7 +14,8 @@ export interface UsageOption {
 
 export interface UsagePermutation {
   explanation: string;
-  options: UsageOption[];
+  required: UsageOption[];
+  optional: UsageOption[];
   isHidden?: boolean;
 }
 
@@ -44,13 +45,19 @@ function renderNode(node: UsageCommand, prefix: string): UsageLine[] {
 }
 
 function renderPermutation(prefix: string, permutation: UsagePermutation): UsageLine {
-  const options = permutation.options.map((opt) => renderOption(opt.argument, opt)).join(" ");
+  const requiredText = permutation.required
+    .map((opt) => renderOption(opt.argument, opt, false))
+    .join(" ");
+  const optionalText = permutation.optional
+    .map((opt) => renderOption(opt.argument, opt, true))
+    .join(" ");
+  const options = [requiredText, optionalText].filter(Boolean).join(" ");
   return {
     syntax: [prefix, options].filter(Boolean).join(" "),
     explanation: permutation.explanation,
   };
 }
-
-function renderOption(label: string, option: UsageOption) {
-  return `${label}:<${option.valueHint}>`;
+function renderOption(label: string, option: UsageOption, optional: boolean) {
+  const rendered = `${label}:<${option.valueHint}>`;
+  return optional ? `[${rendered}]` : rendered;
 }

@@ -1,9 +1,5 @@
 import { Guild, GuildMember } from "discord.js";
-import {
-  createRoleRecord,
-  getRoleByKey,
-  getRolesForGuild,
-} from "./database/role";
+import { createRoleRecord, getRoleByKey, getRolesForGuild } from "./database/role";
 import { DOMAINS } from "./domain";
 import { UserProfile } from "@prisma/client";
 
@@ -18,17 +14,13 @@ export async function ensureGuildRoles(guild: Guild) {
   }
 }
 
-async function ensureRole(
-  guild: Guild,
-  key: string,
-  roleData: { name: string; colour: number },
-) {
+async function ensureRole(guild: Guild, key: string, roleData: { name: string; colour: number }) {
   const existing = await getRoleByKey(guild.id, key);
   if (existing) return existing;
 
   const discordRole = await guild.roles.create({
     name: roleData.name,
-    color: roleData.colour,
+    colors: { primaryColor: roleData.colour },
   });
 
   try {
@@ -39,10 +31,7 @@ async function ensureRole(
   }
 }
 
-export async function syncMemberRoles(
-  member: GuildMember,
-  profile: UserProfile,
-) {
+export async function syncMemberRoles(member: GuildMember, profile: UserProfile) {
   const wanted = computeWantedRoleKeys(profile);
   const guildRoles = await getRolesForGuild(member.guild.id);
 

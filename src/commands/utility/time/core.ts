@@ -21,17 +21,17 @@ const command = new Command()
         `Set your personal IANA timezone; Entering "${ZEROIZE_TIMEZONE_KW}" will delete your tracked timezone`
       )
       .setHint("timezone")
-      .onAutocomplete(async (interaction) => {
+      .onAutocomplete(async (interaction) =>
         provideAutocompleteChoices(interaction, [
           ...Intl.supportedValuesOf("timeZone"),
           ZEROIZE_TIMEZONE_KW,
-        ]);
-      })
+        ])
+      )
   )
   .describe("Get the server timecard")
-  .describe("Get a specific member's timecard", "get")
-  .describe("Set your timezone", "set")
-  .legalize("get", "set")
+  .describe("Get a specific member's timecard", ["get"])
+  .describe("Set your timezone", ["set"])
+  .legalize(["get", "set"])
   .onExecute(async (interaction) => {
     const targetUser = interaction.options.getUser("get");
     const targetTimezone = interaction.options.getString("set");

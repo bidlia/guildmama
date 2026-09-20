@@ -65,10 +65,11 @@ model UserProfile {
 }
 
 model InGameAccount {
-  id                  String    @id
+  id                  String    @id @default(uuid())
   createdAt           DateTime  @default(now())
 
   name                String
+  hunterId            String    @default("")
   gameKey             String
   
   platformKey         String    @default("")

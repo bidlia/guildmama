@@ -11,12 +11,12 @@ const command = new Command()
       .setName("with")
       .setDescription("Get help with a specific command")
       .setHint("command")
-      .onAutocomplete(async (interaction) => {
-        provideAutocompleteChoices(interaction, [...interaction.client.commands.keys()]);
-      })
+      .onAutocomplete(async (interaction) =>
+        provideAutocompleteChoices(interaction, [...interaction.client.commands.keys()])
+      )
   )
   .describe("Peep my about-me!")
-  .describe("Get help with a specific command!", "with")
+  .describe("Get help with a specific command!", ["with"])
   .onExecute(async (interaction) => {
     const targetCommand = interaction.options.getString("with")?.toLowerCase();
 

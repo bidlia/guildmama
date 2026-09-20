@@ -32,10 +32,10 @@ export function confirmPrompt(
       new ButtonBuilder()
         .setCustomId(node.customId(`${actionPrefix}.confirm`, ...args))
         .setLabel(options.confirmLabel ?? "Confirm")
-        .setStyle(ButtonStyle.Danger),
+        .setStyle(ButtonStyle.Success),
       new ButtonBuilder()
         .setCustomId(node.customId(`${actionPrefix}.cancel`, ...args))
         .setLabel(options.cancelLabel ?? "Cancel")
-        .setStyle(ButtonStyle.Secondary)
+        .setStyle(ButtonStyle.Danger)
     );
 }

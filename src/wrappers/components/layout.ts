@@ -14,12 +14,16 @@ export function buttonGrid(rows: ButtonBuilder[][]): ActionRowBuilder<ButtonBuil
   }
   return rows.map((row, i) => {
     if (row.length > 5) {
-      throw new Error(`buttonGrid: row ${i} has ${row.length} buttons, exceeds Discord's 5-per-row limit`);
+      throw new Error(
+        `buttonGrid: row ${i} has ${row.length} buttons, exceeds Discord's 5-per-row limit`
+      );
     }
     return new ActionRowBuilder<ButtonBuilder>().addComponents(row);
   });
 }
 
-export function selectMenuRow(menu: StringSelectMenuBuilder): ActionRowBuilder<StringSelectMenuBuilder> {
+export function selectMenuRow(
+  menu: StringSelectMenuBuilder
+): ActionRowBuilder<StringSelectMenuBuilder> {
   return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(menu);
 }

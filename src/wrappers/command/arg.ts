@@ -16,6 +16,7 @@ type Constructor<T = object> = new (...args: any[]) => T;
 function withArgument<TBase extends Constructor>(Base: TBase) {
   return class extends Base {
     private _argument = "";
+    private _hint = "";
 
     setArgument(argument: string) {
       this._argument = argument;
@@ -25,12 +26,6 @@ function withArgument<TBase extends Constructor>(Base: TBase) {
     getArgument() {
       return this._argument;
     }
-  };
-}
-
-function withHint<TBase extends Constructor>(Base: TBase) {
-  return class extends Base {
-    private _hint = "";
 
     setHint(hint: string) {
       this._hint = hint;
@@ -63,22 +58,16 @@ function expandWithAutocomplete<
 
 type autocompleteHandler = (interaction: AutocompleteInteraction) => Promise<void>;
 
-export const ArgAttachmentOption = withHint(withArgument(SlashCommandAttachmentOption));
-export const ArgBooleanOption = withHint(withArgument(SlashCommandBooleanOption));
-export const ArgChannelOption = withHint(withArgument(SlashCommandChannelOption));
-export const ArgMentionableOption = withHint(withArgument(SlashCommandMentionableOption));
-export const ArgRoleOption = withHint(withArgument(SlashCommandRoleOption));
-export const ArgUserOption = withHint(withArgument(SlashCommandUserOption));
+export const ArgAttachmentOption = withArgument(SlashCommandAttachmentOption);
+export const ArgBooleanOption = withArgument(SlashCommandBooleanOption);
+export const ArgChannelOption = withArgument(SlashCommandChannelOption);
+export const ArgMentionableOption = withArgument(SlashCommandMentionableOption);
+export const ArgRoleOption = withArgument(SlashCommandRoleOption);
+export const ArgUserOption = withArgument(SlashCommandUserOption);
 
-export const ArgIntegerOption = withHint(
-  expandWithAutocomplete(withArgument(SlashCommandIntegerOption))
-);
-export const ArgNumberOption = withHint(
-  expandWithAutocomplete(withArgument(SlashCommandNumberOption))
-);
-export const ArgStringOption = withHint(
-  expandWithAutocomplete(withArgument(SlashCommandStringOption))
-);
+export const ArgIntegerOption = expandWithAutocomplete(withArgument(SlashCommandIntegerOption));
+export const ArgNumberOption = expandWithAutocomplete(withArgument(SlashCommandNumberOption));
+export const ArgStringOption = expandWithAutocomplete(withArgument(SlashCommandStringOption));
 
 export type ArgAttachmentOption = InstanceType<typeof ArgAttachmentOption>;
 export type ArgBooleanOption = InstanceType<typeof ArgBooleanOption>;
