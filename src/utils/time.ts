@@ -6,18 +6,13 @@ export function getTimezoneUtcOffset(timezone: string): number | null {
     });
 
     const parts = format.formatToParts(new Date());
-    const timezoneChunk = parts.find(
-      (prt) => prt.type === "timeZoneName",
-    )!.value;
+    const timezoneChunk = parts.find((prt) => prt.type === "timeZoneName")!.value;
 
     if (timezoneChunk === "GMT") return 0;
     const offsetString = timezoneChunk.replace("GMT", "");
     const offsetSign = offsetString.startsWith("-") ? -1 : 1;
     const [hours, minutes] = offsetString.slice(1).split(":");
-    return (
-      (parseInt(hours, 10) + (minutes ? parseInt(minutes, 10) / 60 : 0)) *
-      offsetSign
-    );
+    return (parseInt(hours, 10) + (minutes ? parseInt(minutes, 10) / 60 : 0)) * offsetSign;
   } catch {
     return null;
   }
@@ -38,14 +33,8 @@ export function convertTimeToClockEmoji(timezone: string): string {
   });
 
   const components = format.formatToParts(Date.now());
-  const hour = parseInt(
-    components.find((prt) => prt.type == "hour")!.value,
-    10,
-  );
-  const minutes = parseInt(
-    components.find((prt) => prt.type == "minute")!.value,
-    10,
-  );
+  const hour = parseInt(components.find((prt) => prt.type == "hour")!.value, 10);
+  const minutes = parseInt(components.find((prt) => prt.type == "minute")!.value, 10);
 
   const emojiParts: string[] = [];
 

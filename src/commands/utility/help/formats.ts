@@ -1,14 +1,11 @@
 import { ChatInputCommandInteraction, Client, EmbedBuilder } from "discord.js";
-import { RELEASE, VERSION } from "../../../utils/constants";
-import { Command } from "../../../types/command";
-import { parseUsageStrings } from "./usage";
+import { Command } from "../../../wrappers/command/core";
+import { renderUsageLines } from "../../../wrappers/command/usage";
+import { IS_DEV_BUILD, RELEASE, VERSION } from "../../../utils/constants";
+import { getColourPreference } from "../../../utils/colour";
 import { capitalize } from "../../../utils/format";
-import { getColourPreference } from "../../../utils/database";
 
-export function buildGeneralHelpEmbed(client: Client<true>): EmbedBuilder {
-  const commandList = client.commands
-    .map((cmd) => `\`/${cmd.data.name}\` *${cmd.data.description}*`)
-    .join("\n");
+export function buildGeneralHelpEmbed(client: Client<true>, command: Command) {
   const versionHex = `#${RELEASE.TINT.toString(16).toUpperCase().padStart(6, "0")}`;
 
   return new EmbedBuilder()
@@ -18,30 +15,31 @@ export function buildGeneralHelpEmbed(client: Client<true>): EmbedBuilder {
     .setColor(RELEASE.TINT)
     .addFields({
       name: "My commands are",
-      value: commandList.concat(
-        `\n\nUse \`/help with:<command>\` for more info on a given command!`,
-      ),
-    })
-    .setFooter({
-      text: `Version ${VERSION}  •  ${process.env.IS_DEVELOPMENT_BUILD ? "Development build" : "Public release"}  •  Build tint ${versionHex}`,
+      value: [...client.commands.values()]
+        .map((cmd) => `\`/${cmd.name}\` *${cmd.description}*`)
+        .join("\n")
+        .concat(
+          `\n\nUse \`/help with:<command>\` for more info on a given command!\n\nVersion ${VERSION}  •  ${IS_DEV_BUILD ? "Development build" : "Public release"}  •  Build tint *${versionHex}*`
+        ),
     });
 }
 
 export async function buildCommandHelpEmbed(
   interaction: ChatInputCommandInteraction,
-  command: Command,
-): Promise<EmbedBuilder> {
+  command: Command
+) {
+  const usageLines = renderUsageLines(command.getUsageTree()).map(
+    (usg) => `\`${usg.syntax}\` *${usg.explanation}*`
+  );
   const embed = new EmbedBuilder()
-    .setAuthor({ name: `${capitalize(command.category!)} command` })
-    .setTitle(`\`/${command.data.name}\``)
-    .setDescription(`*${command.data.description}*`)
+    .setAuthor({ name: `${capitalize(command.category)} command` })
+    .setTitle(`/${command.name}`)
+    .setDescription(`*${command.description}*`)
     .setColor(await getColourPreference(interaction.user.id));
 
-  if (command.usage.children)
-    embed.addFields({
-      name: "Usage",
-      value: parseUsageStrings(command).join("\n"),
-    });
-  else embed.setDescription(command.data.description);
-  return embed;
+  if (usageLines.length === 0) return embed;
+  return embed.addFields({
+    name: "Usage",
+    value: usageLines.join("\n"),
+  });
 }

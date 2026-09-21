@@ -1,25 +1,16 @@
 /// <reference path="./types/discord.d.ts" />
-import {
-  ActivityType,
-  Client,
-  Collection,
-  Events,
-  GatewayIntentBits,
-  Interaction,
-  InteractionReplyOptions,
-  MessageFlags,
-} from "discord.js";
+import { ActivityType, Client, Collection, Events, GatewayIntentBits } from "discord.js";
+import { manager } from "./handlers/shutdown";
+import { log, loggable, LogModes } from "./utils/log";
+import { CLIENT_TOKEN, IS_DEV_BUILD, VERSION } from "./utils/constants";
 import { discoverCommands } from "./utils/discover-commands";
-import { VERSION } from "./utils/constants";
-import { handleShutdown } from "./handlers/shutdown";
-import { handleChatInput } from "./handlers/chat-input";
-import { handleAutocomplete } from "./handlers/autocomplete";
-import { fetchApplicationEmojis } from "./utils/emoji";
-import { handleComponent } from "./handlers/component";
+import { handleInteraction } from "./handlers/interaction";
+import { emojiCache } from "./utils/emoji";
+import { reconcileGuilds, reconcileMembers } from "./utils/database/reconcile";
+import { guildJoinHandler, guildLeaveHandler } from "./handlers/guild";
+import { memberJoinHandler, memberLeaveHandler } from "./handlers/guildmember";
 
-let isFinishedStartup = false;
-
-const client = new Client({
+export const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
@@ -28,79 +19,29 @@ const client = new Client({
   ],
 });
 client.commands = new Collection();
-for (const command of discoverCommands(__dirname)) {
-  client.commands.set(command.data.name, command);
-}
+for (const command of discoverCommands(__dirname)) client.commands.set(command.name, command);
 
-client.once(Events.ClientReady, async (client: Client<true>) => {
-  console.log("[Boot]: Fetching application emojis...");
-  await fetchApplicationEmojis(client);
-  console.log("[Boot]: Emojis collected.");
+log(LogModes.BOOT, "Connecting to discord...");
 
-  console.log(
-    `[Boot]: Awake and ready on client ${client.user.username}! (${client.user.id})`,
-  );
+client.once(Events.ClientReady, async (client) => {
+  log(LogModes.BOOT, "Connected.");
+  manager.init(client);
 
-  isFinishedStartup = true;
+  await Promise.all([reconcileMembers(client), reconcileGuilds(client), emojiCache.load(client)]);
 
-  client.user.setActivity(
-    `Version ${VERSION}  ${process.env.IS_DEVELOPMENT_BUILD ? "🪲" : "📚"}`,
-    {
-      type: ActivityType.Playing,
-    },
-  );
+  log(LogModes.BOOT, `Awake and ready on client ${loggable(client.user)}!`);
+
+  client.user.setActivity(`Version ${VERSION}  ${IS_DEV_BUILD ? "🪲" : "📚"}`, {
+    type: ActivityType.Playing,
+  });
+
+  client.on(Events.InteractionCreate, async (interaction) => await handleInteraction(interaction));
+
+  client.on(Events.GuildCreate, async (guild) => guildJoinHandler(guild));
+  client.on(Events.GuildDelete, async (guild) => guildLeaveHandler(guild));
+
+  client.on(Events.GuildMemberAdd, async (member) => memberJoinHandler(member));
+  client.on(Events.GuildMemberRemove, async (member) => memberLeaveHandler(member));
 });
 
-client.on(Events.InteractionCreate, async (interaction: Interaction) => {
-  if (!isFinishedStartup) {
-    if (interaction.isRepliable())
-      return interaction.reply({
-        content:
-          "Sorry, but I'm still waking up. Give me a few moments to shake off the rust!  ☁️",
-      });
-    return console.error(
-      "[Err]: Received interaction while starting up. Discarding.",
-    );
-  } else if (interaction.isChatInputCommand()) {
-    try {
-      await handleChatInput(interaction);
-    } catch (err) {
-      console.error(
-        `[Err]: There was an error while executing the command '${interaction.commandName}'; ${err}`,
-      );
-
-      const apologyMessage: InteractionReplyOptions = {
-        content: "There was an error while executing this command!",
-        flags: MessageFlags.Ephemeral,
-      };
-
-      try {
-        if (interaction.replied || interaction.deferred) {
-          await interaction.followUp(apologyMessage);
-        } else {
-          await interaction.reply(apologyMessage);
-        }
-      } catch (err) {
-        console.error("[Err]: Failed to forward error notice to user: ", err);
-      }
-    }
-  } else if (interaction.isAutocomplete()) {
-    try {
-      await handleAutocomplete(interaction);
-    } catch (err) {
-      console.error(
-        `[Err]: Autocomplete failed for the command '${interaction.commandName}'`,
-        err,
-      );
-    }
-  } else if (
-    interaction.isButton() ||
-    interaction.isModalSubmit() ||
-    interaction.isStringSelectMenu()
-  )
-    handleComponent(interaction);
-});
-
-client.login(process.env.CLIENT_TOKEN);
-
-handleShutdown(client);
+client.login(CLIENT_TOKEN);

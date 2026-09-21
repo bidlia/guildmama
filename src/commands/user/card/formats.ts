@@ -1,101 +1,71 @@
-import { Profile } from "@prisma/client";
-import {
-  ActionRowBuilder,
-  APIEmbedField,
-  ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder,
-  Interaction,
-  User,
-} from "discord.js";
-import { addOrdinalSuffix } from "../../../utils/format";
-import { getColourPreference, prettifyGameRank } from "../../../utils/database";
-import { emojisFromBitmask } from "../../../utils/bitmask";
-import { DOMAINS } from "../../../utils/constants";
-import { EMOJIS } from "../../../utils/emoji";
+import { EmbedBuilder, Interaction, User } from "discord.js";
+import { getColourPreference } from "../../../utils/colour";
+import { DOMAINS } from "../../../utils/domain";
+import { emojiCache, emojisFromMask } from "../../../utils/emoji";
 import { convertTimeToClockEmoji } from "../../../utils/time";
+import { addOrdinalSuffix } from "../../../utils/format";
+import { db } from "../../../database";
+import { AnyCommandInteraction } from "../../../wrappers/components/types";
+import { renderRank } from "../hunter/formats";
 
-export async function buildUserProfileCard(
-  user: User,
-  displayName: string,
-  profile: Profile,
-): Promise<EmbedBuilder> {
+export async function buildMemberCard(interaction: AnyCommandInteraction, userId: string) {
+  const user = await interaction.client.users.fetch(userId);
+  const displayName = await getNickname(interaction, user);
+
+  const member = (await db.guildProfile.findUnique({
+    where: { guildId_userId: { guildId: interaction.guild!.id, userId } },
+    include: { user: true },
+  }))!;
+
   const embed = new EmbedBuilder()
-    .setThumbnail(user.displayAvatarURL())
-    .setColor(await getColourPreference(user.id));
+    .setThumbnail(user.displayAvatarURL({ size: 1024 }))
+    .setColor(await getColourPreference(userId));
 
   embed.setTitle(
-    profile.customComment.length > 0
-      ? `*"${profile.customComment}"*`
-      : ":wave:  Hello there!",
+    member.user.customComment.length ? `*"${member.user.customComment}"*` : ":wave:  Hello there!"
   );
-
-  const description: string[] = [];
-
-  if (profile.inGameId.length > 0)
-    description.push(
-      `:identification_card:  Wilds Hunter ID \`${profile.inGameId}\``,
-    );
-  if (profile.gameBaseScore > 0)
-    description.push(prettifyGameRank(profile.gameBaseScore));
-
-  if (description.length > 0) embed.setDescription(description.join("\n"));
 
   const header: string[] = [displayName];
 
-  if (profile.customTitle.length > 0) header.push(profile.customTitle);
-  if (profile.authorityLevel == 0) header.push("Guildmaster");
+  if (member.user.customTitle.length) header.push(member.user.customTitle);
+  if (!member!.authority) header.push("Guildmaster");
 
   embed.setAuthor({ name: header.join("  •  ") });
 
-  const fields: APIEmbedField[] = [];
+  const fields = [];
 
-  if (profile.gamesBitmask > 0)
+  if (member.user.gamesMask)
     fields.push({
       name: "Games",
-      value: foldContents(
-        emojisFromBitmask(DOMAINS.GAMES, EMOJIS.GAMES, profile.gamesBitmask),
-        3,
-      ),
+      value: foldContents(emojisFromMask("GAMES", DOMAINS.GAMES, member.user.gamesMask), 3),
       inline: true,
     });
 
-  if (profile.weaponsBitmask > 0)
+  if (member.user.weaponsMask > 0)
     fields.push({
       name: "Plays with",
-      value: foldContents(
-        emojisFromBitmask(
-          DOMAINS.WEAPONS,
-          EMOJIS.WEAPONS,
-          profile.weaponsBitmask,
-        ),
-        7,
-      ),
+      value: foldContents(emojisFromMask("WEAPONS", DOMAINS.WEAPONS, member.user.weaponsMask), 7),
       inline: true,
     });
 
-  if (profile.platformsBitmask > 0)
+  if (member.user.platformsMask > 0)
     fields.push({
       name: "Platforms",
       value: foldContents(
-        emojisFromBitmask(
-          DOMAINS.PLATFORMS,
-          EMOJIS.PLATFORMS,
-          profile.platformsBitmask,
-        ),
-        3,
+        emojisFromMask("PLATFORMS", DOMAINS.PLATFORMS, member.user.platformsMask),
+        3
       ),
     });
 
-  if (fields.length > 0) embed.addFields(...fields);
+  if (fields.length) embed.addFields(...fields);
 
   const footer: string[] = [];
 
-  if (profile.timezone.length > 0) {
-    const emoji = convertTimeToClockEmoji(profile.timezone);
+  if (member.user.timezone.length > 0) {
+    const emoji = convertTimeToClockEmoji(member.user.timezone);
 
     const time = new Intl.DateTimeFormat("en-US", {
-      timeZone: profile.timezone,
+      timeZone: member.user.timezone,
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
@@ -104,51 +74,72 @@ export async function buildUserProfileCard(
     footer.push(`${emoji}  ${time}`);
   }
 
-  if (profile.generation > 0)
-    footer.push(`${addOrdinalSuffix(profile.generation)} Generation Hunter`);
-  if (profile.customColour > 0)
-    footer.push(
-      `*#${profile.customColour.toString(16).toUpperCase().padStart(6, "0")}*`,
-    );
+  if (member.user.generationJoined)
+    footer.push(`${addOrdinalSuffix(member.user.generationJoined)} Generation Hunter`);
+  if (member.user.customColour)
+    footer.push(`*#${member.user.customColour.toString(16).toUpperCase().padStart(6, "0")}*`);
 
-  if (footer.length > 0)
-    embed.addFields({ name: "", value: footer.join("  •  ") });
+  if (footer.length) embed.addFields({ name: "", value: footer.join("  •  ") });
 
   return embed;
 }
 
-export function buildMainEditorRow(): ActionRowBuilder<ButtonBuilder>[] {
-  const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId("card:open:info")
-      .setLabel("Personalize")
-      .setStyle(ButtonStyle.Primary),
-    new ButtonBuilder()
-      .setCustomId("card:open:RANK")
-      .setLabel("Rank")
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId("card:open:GENERATION")
-      .setLabel("Generation")
-      .setStyle(ButtonStyle.Secondary),
+export async function buildAccountList(interaction: AnyCommandInteraction, userId: string) {
+  const user = await interaction.client.users.fetch(userId);
+  const displayName = await getNickname(interaction, user);
+
+  const member = (await db.guildProfile.findUnique({
+    where: { guildId_userId: { guildId: interaction.guild!.id, userId } },
+    include: { user: { include: { accounts: true } } },
+  }))!;
+
+  const embed = new EmbedBuilder()
+    .setThumbnail(user.displayAvatarURL({ size: 1024 }))
+    .setColor(await getColourPreference(userId));
+
+  embed.setTitle("Hunters");
+
+  const header: string[] = [displayName];
+
+  if (member.user.customTitle.length) header.push(member.user.customTitle);
+  if (!member!.authority) header.push("Guildmaster");
+
+  embed.setAuthor({ name: header.join("  •  ") });
+
+  embed.setDescription(
+    member.user.accounts
+      .map(
+        (act) =>
+          `${act.gameKey ? emojiCache.get("GAMES", act.gameKey)?.toString() : ""} ${act.platformKey ? emojiCache.get("PLATFORMS", act.platformKey)?.toString() : ""} **${act.name}** ${`**${renderRank(act)}**`} ${act.hunterId.length ? `\`${act.hunterId}\`` : ""}`
+      )
+      .join("\n")
   );
 
-  const row2 = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId("card:open:PLATFORMS")
-      .setLabel("Platforms")
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId("card:open:GAMES")
-      .setLabel("Games")
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId("card:open:WEAPONS")
-      .setLabel("Weapons")
-      .setStyle(ButtonStyle.Secondary),
-  );
-  return [row1, row2];
+  const footer: string[] = [];
+
+  if (member.user.timezone.length > 0) {
+    const emoji = convertTimeToClockEmoji(member.user.timezone);
+
+    const time = new Intl.DateTimeFormat("en-US", {
+      timeZone: member.user.timezone,
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    }).format(new Date());
+
+    footer.push(`${emoji}  ${time}`);
+  }
+
+  if (member.user.generationJoined)
+    footer.push(`${addOrdinalSuffix(member.user.generationJoined)} Generation Hunter`);
+  if (member.user.customColour)
+    footer.push(`*#${member.user.customColour.toString(16).toUpperCase().padStart(6, "0")}*`);
+
+  if (footer.length) embed.addFields({ name: "", value: footer.join("  •  ") });
+
+  return embed;
 }
+
 function foldContents(contents: string[], foldLength: number): string {
   const foldedContents: string[] = [];
   for (let i = 0; i < contents.length; i++)
@@ -157,10 +148,7 @@ function foldContents(contents: string[], foldLength: number): string {
   return foldedContents.join("  ");
 }
 
-export async function getNickname(
-  user: User,
-  interaction: Interaction,
-): Promise<string> {
+export async function getNickname(interaction: Interaction, user: User) {
   const member = interaction.guild
     ? await interaction.guild.members.fetch(user.id).catch(() => null)
     : null;

@@ -1,37 +1,71 @@
-import { ApplicationEmoji, Client, Collection } from "discord.js";
-import { DOMAINS } from "./constants";
-import { EmojiMap, Emojis } from "../types/emoji";
-import { EnumLike } from "../types/bitmask";
+import { ApplicationEmoji, Client } from "discord.js";
+import { DomainDef, DOMAINS } from "./domain";
+import { log, LogModes } from "./log";
 
-export let EMOJIS: Emojis;
+class EmojiCache {
+  private _cache = new Map<string, ApplicationEmoji>();
+  private _isLoaded = false;
 
-export async function fetchApplicationEmojis(client: Client<true>) {
-  const fetched = await client.application.emojis.fetch();
+  async load(client: Client) {
+    log(LogModes.BOOT, `Fetching application emojis...`);
 
-  const result = {} as Emojis;
-  for (const key of Object.keys(DOMAINS) as (keyof typeof DOMAINS)[]) {
-    (result as any)[key] = buildEmojiMap(DOMAINS[key], fetched);
+    if (!client.application) {
+      throw new Error("Emoji load called before application is available");
+    }
+
+    const emojis = await client.application.emojis.fetch();
+
+    for (const { emoji } of allEmojiNames(DOMAINS)) {
+      const match = emojis.find((emj) => emj.name === emoji);
+      if (match) this._cache.set(emoji, match);
+      else log(LogModes.WARN, `No application emoji found matching "${emoji}"`);
+    }
+
+    log(LogModes.BOOT, `Cached ${this._cache.size} emojis.`);
+    this._isLoaded = true;
   }
 
-  EMOJIS = result;
+  get<D extends keyof typeof DOMAINS>(
+    domainKey: D,
+    entryKey: keyof (typeof DOMAINS)[D]["entries"]
+  ) {
+    const name = (DOMAINS[domainKey].entries as Record<string, { emoji: string }>)[
+      entryKey as string
+    ].emoji;
+    return this._cache.get(name);
+  }
+
+  getByName(name: string) {
+    return this._cache.get(name);
+  }
+
+  get isLoaded() {
+    return this._isLoaded;
+  }
 }
 
-export function buildEmojiMap<T extends EnumLike>(
-  domain: T,
-  fetched: Collection<string, ApplicationEmoji>,
-): EmojiMap<T> {
-  const byName = new Map(fetched.map((e) => [e.name, e]));
-  const emojiCache = {} as EmojiMap<T>;
+export const emojiCache = new EmojiCache();
 
-  for (const key of Object.keys(domain) as (keyof T)[]) {
-    const emoji = byName.get(key as string);
-    if (!emoji) {
-      throw new Error(
-        `[Err]: No matching application emoji found for key "${String(key)}"`,
-      );
+export function emojisFromMask(domainKey: keyof typeof DOMAINS, domain: DomainDef, mask: number) {
+  return Object.entries(domain.entries)
+    .filter(([, entry]) => entry.index !== undefined && (mask & (1 << entry.index)) !== 0)
+    .map(([key]) => emojiCache.get(domainKey, key as never)?.toString() ?? key);
+}
+
+function allEmojiNames(domains: Record<string, DomainDef>) {
+  const result: EmojiRef[] = [];
+
+  for (const [domainKey, domain] of Object.entries(domains)) {
+    for (const [entryKey, entry] of Object.entries(domain.entries)) {
+      result.push({ domainKey, entryKey, emoji: entry.emoji });
     }
-    emojiCache[key] = emoji.toString();
   }
 
-  return emojiCache;
+  return result;
+}
+
+interface EmojiRef {
+  domainKey: string;
+  entryKey: string;
+  emoji: string;
 }

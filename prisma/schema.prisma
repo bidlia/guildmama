@@ -1,51 +1,82 @@
 datasource db {
-  provider    = "sqlite"
-  url         = env("DATABASE_URL")
+  provider            = "sqlite"
+  url                 = env("DATABASE_URL")
 }
 
 generator client {
-  provider = "prisma-client-js"
-}
-
-model Profile {
-  id                  String    @id // discord user id
-  createdAt           DateTime  @default(now())
-
-  timezone            String    @default("")
-  customColour        Int       @default(0)
-
-  authorityLevel      Int       @default(1)
-  customTitle         String    @default("Ace Hunter")
-  customComment       String    @default("")
-
-  inGameName          String    @default("")
-  inGameId            String    @default("")
-  gameBaseScore       Int       @default(0)
-  gameExpacScore      Int       @default(0)
-  generation          Int       @default(0)
-
-  weaponsBitmask      Int       @default(0)
-  platformsBitmask    Int       @default(0)
-  gamesBitmask        Int       @default(0)
-
-  guildId             String 
-  guild               Guild     @relation(fields: [guildId], references: [id])
+  provider            = "prisma-client-js"
 }
 
 model Guild {
-  id                  String    @id // discord server id
+  id                  String    @id
   createdAt           DateTime  @default(now())
-  
-  // tracking of managed roles
-  appRoles            AppRole[]
+  leftAt              DateTime?
+
   defaultAuthority    Int       @default(1)
 
-  members             Profile[]
+  users               GuildProfile[]
+  roles               Role[]
 }
 
-model AppRole {
-  id                  Int       @id       @default(autoincrement())
-  roleId              String
+model GuildProfile {
+  id                  String    @id @default(cuid())
+  createdAt           DateTime  @default(now())
+  leftAt              DateTime?
+
+  authority           Int
+  
   guildId             String
   guild               Guild     @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  userId              String
+  user                UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, userId])
 }
+
+model Role {
+  id                  String    @id
+  key                 String
+
+  guildId             String
+  guild               Guild @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, key])
+}
+
+
+model UserProfile {
+  id                  String    @id
+  createdAt           DateTime  @default(now())
+
+  timezone            String    @default("")
+  generationJoined    Int       @default(0)
+
+  weaponsMask         Int       @default(0)
+  platformsMask       Int       @default(0)
+  gamesMask           Int       @default(0)
+
+  customTitle         String    @default("Ace Hunter")
+  customComment       String    @default("")
+  customColour        Int       @default(0)
+
+  accounts            InGameAccount[]
+  guilds              GuildProfile[]
+}
+
+model InGameAccount {
+  id                  String    @id @default(uuid())
+  createdAt           DateTime  @default(now())
+
+  name                String
+  hunterId            String    @default("")
+  gameKey             String
+  
+  platformKey         String    @default("")
+  baseScore           Int       @default(0)
+  expacScore          Int       @default(0)
+
+  userId              String
+  user                UserProfile   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+

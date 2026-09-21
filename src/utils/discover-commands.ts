@@ -1,36 +1,28 @@
-import { join } from "node:path";
 import { existsSync, readdirSync } from "node:fs";
-import { Command } from "../types/command";
+import { log, LogModes } from "./log";
+import { join } from "node:path";
+import { Command } from "../wrappers/command/core";
 
 export function discoverCommands(operatingDir: string): Command[] {
   const commands: Command[] = [];
   const commandRoot = join(operatingDir, "commands");
 
-  for (const commandCategory of readdirSync(commandRoot, {
+  for (const category of readdirSync(commandRoot, {
     withFileTypes: true,
   })
-    .filter((dir) => dir.isDirectory())
+    .filter((file) => file.isDirectory())
     .map((dir) => dir.name)) {
-    const commandCategoryPath = join(commandRoot, commandCategory);
-    for (const categoryEntry of readdirSync(commandCategoryPath, {
+    const categoryPath = join(commandRoot, category);
+    for (const entry of readdirSync(categoryPath, {
       withFileTypes: true,
-    })) {
-      if (categoryEntry.isFile() && categoryEntry.name.endsWith(".js"))
-        verifyCommandAndPush(
-          join(commandCategoryPath, categoryEntry.name),
-          commandCategory,
-          commands,
-        );
-      else if (categoryEntry.isDirectory()) {
-        const probableCommandPath = join(
-          commandCategoryPath,
-          categoryEntry.name,
-          "command.js",
-        );
+    }))
+      if (entry.isFile() && entry.name.endsWith(".js"))
+        verifyCommandAndPush(join(categoryPath, entry.name), category, commands);
+      else if (entry.isDirectory()) {
+        const probableCommandPath = join(categoryPath, entry.name, "core.js");
         if (existsSync(probableCommandPath))
-          verifyCommandAndPush(probableCommandPath, commandCategory, commands);
+          verifyCommandAndPush(probableCommandPath, category, commands);
       }
-    }
   }
 
   return commands;
@@ -39,15 +31,17 @@ export function discoverCommands(operatingDir: string): Command[] {
 function verifyCommandAndPush(
   commandPath: string,
   commandCategory: string,
-  commands: Command[],
+  commands: Command[]
 ): void {
   const commandModule = require(commandPath);
-  const command: Command = commandModule.default ?? commandModule;
-  if (!command.category) command.category = commandCategory;
+  const command = commandModule.default ?? commandModule;
 
-  if ("data" in command && "execute" in command) commands.push(command);
-  else
-    console.error(
-      `Err: Command at ${commandPath} has missing or malformed fields (data, execute).`,
+  if (!(command instanceof Command))
+    return log(
+      LogModes.ERR,
+      `Command at ${commandPath} did not export a Command instance; Found ${typeof command}.`
     );
+
+  if (!command.category) command.setCategory(commandCategory);
+  commands.push(command);
 }

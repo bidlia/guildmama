@@ -1,94 +1,86 @@
-import { EmbedBuilder, Interaction, User } from "discord.js";
-import { RELEASE } from "../../../utils/constants";
-import { Profile } from "@prisma/client";
-import { Record } from "@prisma/client/runtime/library";
+import { UserProfile } from "@prisma/client";
+import { ChatInputCommandInteraction, EmbedBuilder, User } from "discord.js";
+import { getColourPreference } from "../../../utils/colour";
 import {
   convertOffsetToGlobeEmoji,
+  convertTimeToClockEmoji,
   getTimezoneUtcOffset,
 } from "../../../utils/time";
-import { getColourPreference } from "../../../utils/database";
 
-export async function buildGlobalTimecard(
-  interaction: Interaction,
-  profiles: Profile[],
-): Promise<EmbedBuilder> {
-  const userProfile = profiles.find(
-    (prf) => prf.id == interaction.user.id,
-  ) as Profile;
-  const userNote =
-    userProfile && userProfile.timezone != ""
-      ? `Your timezone is currently set to \`${userProfile.timezone}\``
+export async function buildServerTimecard(
+  interaction: ChatInputCommandInteraction,
+  users: UserProfile[]
+) {
+  const caller = users.find((usr) => usr.id == interaction.user.id);
+  const notice =
+    caller && caller.timezone != ""
+      ? `Your timezone is currently set to \`${caller.timezone}\``
       : "Add your timezone with \`/time set:<timezone>\`";
 
   const groups: Record<string, string[]> = {};
-  getProfileTimes(profiles).forEach((prf) => {
-    if (!groups[prf.time]) groups[prf.time] = [];
-    groups[prf.time].push(`<@${prf.user.id}>`);
+  getUserTimes(users).forEach((usr) => {
+    if (!groups[usr.time]) groups[usr.time] = [];
+    groups[usr.time].push(`<@${usr.user.id}>`);
   });
 
-  const timefields = Object.entries(groups).map(([timeString, members]) => {
-    return { name: timeString, value: members.sort().join("\n"), inline: true };
-  });
+  const timezones = Object.entries(groups).map(([timeString, members]) => ({
+    name: timeString,
+    value: members.sort().join("\n"),
+    inline: true,
+  }));
 
-  const embed = new EmbedBuilder()
-    .setTitle("Global Timecard  🗺️")
-    .setColor(await getColourPreference(userProfile))
-    .addFields(...timefields, {
+  return new EmbedBuilder()
+    .setTitle("Server Timecard  🗺️")
+    .setColor(await getColourPreference(interaction.user.id))
+    .addFields(...timezones, {
       name: "",
-      value: userNote,
+      value: notice,
     });
-
-  return embed;
 }
 
-export async function buildSingleTimecard(
-  user: User,
-  userProfile: Profile,
-): Promise<EmbedBuilder> {
+export async function buildUserTimecard(user: User, userProfile: UserProfile) {
   return new EmbedBuilder()
-    .setAuthor({ name: `${user.displayName}'s local time` })
-    .setTitle(getProfileTimes([userProfile])[0].time)
+    .setAuthor({
+      name: `${user.displayName}'s local time`,
+    })
+    .setTitle(getUserTimes([userProfile])[0].time)
     .setColor(await getColourPreference(userProfile));
 }
 
-export function buildFailureCard(
-  attempt: string,
-  resetWord: string,
-): EmbedBuilder {
+export async function buildFailureCard(userId: string, attempt: string, resetWord: string) {
   return new EmbedBuilder()
     .setAuthor({ name: "Invalid timezone" })
     .setTitle(`\`${attempt}\` isn't a recognized IANA timezone.`)
     .setDescription(
-      `Please choose an option directly from the suggestions.\n\nYou can also use \`/time set:${resetWord}\` to remove your timecard.`,
+      `Please choose an option directly from the suggestions.\n\nYou can also use \`/time set:${resetWord}\` to erase your existing timezone.`
     )
-    .setColor(RELEASE.TINT);
+    .setColor(await getColourPreference(userId));
 }
 
-function getProfileTimes(
-  profiles: Profile[],
-): { time: string; user: Profile }[] {
-  const rawLocale: { offset: number; string: string; user: Profile }[] = [];
+function getUserTimes(users: UserProfile[]) {
+  const rawLocalStrings = [];
 
-  for (const profile of profiles) {
-    const utcOffset = getTimezoneUtcOffset(profile.timezone);
+  for (const user of users) {
+    const utcOffset = getTimezoneUtcOffset(user.timezone);
 
     if (utcOffset === null) continue;
-    rawLocale.push({
+
+    rawLocalStrings.push({
       offset: utcOffset,
       string: new Intl.DateTimeFormat("en-US", {
-        timeZone: profile.timezone,
+        timeZone: user.timezone,
         hour: "numeric",
         minute: "2-digit",
         hour12: true,
       }).format(new Date()),
-      user: profile,
+      user: user,
     });
   }
 
-  return rawLocale
+  return rawLocalStrings
     .sort((a, b) => b.offset - a.offset)
     .map((loc) => ({
-      time: `${convertOffsetToGlobeEmoji(loc.offset)}  ${loc.string}`,
+      time: `${convertOffsetToGlobeEmoji(loc.offset)} ${loc.string}`,
       user: loc.user,
     }));
 }

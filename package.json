@@ -1,6 +1,6 @@
 {
   "name": "guildmama",
-  "version": "0.7.0",
+  "version": "0.9.4",
   "description": "General purpose discord utility bot for a group of MH friends.",
   "homepage": "https://github.com/bidlia/guildmama#readme",
   "bugs": {
@@ -16,11 +16,12 @@
   "scripts": {
     "build": "echo 'Building...' && rm -rf dist && tsc --sourceMap false && echo 'Built.'",
     "start": "echo 'Starting...' && node --env-file=.env .",
-    "deploy": "node --env-file=.env dist/deploy-commands.js"
+    "deploy": "node --env-file=.env dist/deploy-commands.js",
+    "clean": "node --env-file=.env dist/clear-commands.js"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
-    "prisma": "^6.19.3"
+    "prisma": "^6.12.0"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
