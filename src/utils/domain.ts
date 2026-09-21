@@ -1,3 +1,5 @@
+import { InGameAccount } from "@prisma/client";
+
 export const DOMAINS = buildDomains({
   WEAPONS: {
     hasBitmask: true,
@@ -147,6 +149,16 @@ function buildDomains<T extends Record<string, RawDomain>>(raw: T) {
 
   return domains;
 }
+
+export function orderByGame(accounts: InGameAccount[]) {
+  const fetchGameIndex = (key: string) => GAME_ORDER.get(key) ?? Number.MAX_SAFE_INTEGER;
+
+  return accounts.sort(
+    (a, b) => fetchGameIndex(a.gameKey) - fetchGameIndex(b.gameKey) || a.name.localeCompare(b.name)
+  );
+}
+
+const GAME_ORDER = new Map(Object.keys(DOMAINS.GAMES.entries).map((key, index) => [key, index]));
 
 export interface DomainDef {
   bitmask: boolean;

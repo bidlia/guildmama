@@ -1,6 +1,6 @@
 import { EmbedBuilder, Interaction, User } from "discord.js";
 import { getColourPreference } from "../../../utils/colour";
-import { DOMAINS } from "../../../utils/domain";
+import { DOMAINS, orderByGame } from "../../../utils/domain";
 import { emojiCache, emojisFromMask } from "../../../utils/emoji";
 import { convertTimeToClockEmoji } from "../../../utils/time";
 import { addOrdinalSuffix } from "../../../utils/format";
@@ -107,10 +107,10 @@ export async function buildAccountList(interaction: AnyCommandInteraction, userI
   embed.setAuthor({ name: header.join("  •  ") });
 
   embed.setDescription(
-    member.user.accounts
+    orderByGame(member.user.accounts)
       .map(
         (act) =>
-          `${act.gameKey ? emojiCache.get("GAMES", act.gameKey)?.toString() : ""} ${act.platformKey ? emojiCache.get("PLATFORMS", act.platformKey)?.toString() : ""} **${act.name}** ${`**${renderRank(act)}**`} ${act.hunterId.length ? `\`${act.hunterId}\`` : ""}`
+          `${act.gameKey ? emojiCache.get("GAMES", act.gameKey)?.toString() : ""} ${act.platformKey ? emojiCache.get("PLATFORMS", act.platformKey)?.toString() : ""} **${act.name}** ${act.baseScore || act.expacScore ? `**${renderRank(act)}**` : ""} ${act.hunterId.length ? `\`${act.hunterId}\`` : ""}`
       )
       .join("\n")
   );

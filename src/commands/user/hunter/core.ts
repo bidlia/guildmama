@@ -1,7 +1,7 @@
 import { AutocompleteInteraction, flatten, MessageFlags } from "discord.js";
 import { Command } from "../../../wrappers/command/core";
 import { buildHunterAccount, domainChoices, rankLabel, renderRank } from "./formats";
-import { DOMAINS } from "../../../utils/domain";
+import { DOMAINS, orderByGame } from "../../../utils/domain";
 import { createAccount, deleteAccount, getAccount } from "../../../utils/database/account";
 import { attachAccountView } from "./pages";
 import { InGameAccount } from "@prisma/client";
@@ -193,7 +193,7 @@ function filterHero(interaction: AutocompleteInteraction, accounts: InGameAccoun
   const partialChoice = interaction.options.getFocused().toLowerCase();
 
   const formattedAccounts = accounts.length
-    ? accounts.map((act) => ({
+    ? orderByGame(accounts).map((act) => ({
         name: `${act.name} ${renderRank(act)} ${act.gameKey}`,
         value: act.id,
       }))

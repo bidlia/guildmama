@@ -69,7 +69,7 @@ export function rankLabel(value: string, flair = true): string {
   const tier = rankTiers.find((opt) => opt.value === value)?.label ?? "Unknown";
 
   if (!flair) return tier;
-  if (value === "999") return `${tier}  :sparkles:`;
+  if (value === "999") return `**${tier}**  :sparkles:`;
   return `${tier}  :star:`;
 }
 
