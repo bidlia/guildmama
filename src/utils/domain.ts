@@ -154,7 +154,7 @@ export function orderByGame(accounts: InGameAccount[]) {
   const fetchGameIndex = (key: string) => GAME_ORDER.get(key) ?? Number.MAX_SAFE_INTEGER;
 
   return accounts.sort(
-    (a, b) => fetchGameIndex(a.gameKey) - fetchGameIndex(b.gameKey) || a.name.localeCompare(b.name)
+    (a, b) => fetchGameIndex(b.gameKey) - fetchGameIndex(a.gameKey) || a.name.localeCompare(b.name)
   );
 }
 
